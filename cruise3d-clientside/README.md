@@ -11,6 +11,28 @@ Currently, two official plugins are available:
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
+## Docker
+
+A multi-stage `Dockerfile` and `docker-compose.yml` are provided.
+
+```bash
+# Production build served by nginx on http://localhost:8080
+docker compose up --build frontend
+
+# Dev server with HMR on http://localhost:5173
+docker compose up --build frontend-dev
+
+# Also start the .NET backend placeholder
+docker compose --profile with-backend up --build frontend-dev
+```
+
+Build args (`VITE_API_BASE_URL`, `VITE_RAZORPAY_KEY_ID`) are baked into the
+production image at build time:
+
+```bash
+docker compose build --build-arg VITE_API_BASE_URL=https://api.example.com/api frontend
+```
+
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:

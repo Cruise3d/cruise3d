@@ -24,7 +24,7 @@ export default defineConfig({
     proxy: {
       // Forward /api calls to the backend during dev to avoid CORS pain
       '/api': {
-        target: 'http://localhost:5284',
+        target: 'http://localhost:5000',
         changeOrigin: true,
       },
     },
