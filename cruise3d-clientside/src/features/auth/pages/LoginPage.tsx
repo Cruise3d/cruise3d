@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 import { loginSchema, type LoginFormData } from '../../../lib/validators/authSchemas';
@@ -7,6 +7,7 @@ import { useLogin } from '../hooks/useLogin';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, isLoading } = useLogin();
 
   const [formData, setFormData] = useState<LoginFormData>({
@@ -48,12 +49,23 @@ export const LoginPage: React.FC = () => {
     setSubmitError(null);
 
     try {
-      await login({
+      const response = await login({
         email: formData.email,
         password: formData.password,
         rememberMe: formData.rememberMe,
       });
-      navigate('/');
+
+      // Admins land on /admin; other users go home or back to the page
+      // they were originally sent here from.
+      const intendedDestination =
+        (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+      if (response.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else if (intendedDestination && intendedDestination !== '/login') {
+        navigate(intendedDestination, { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : 'Sign in failed. Please try again.'
