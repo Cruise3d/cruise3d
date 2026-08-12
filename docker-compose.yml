@@ -45,7 +45,7 @@ services:
       Razorpay__Key: ${RAZORPAY_KEY}
       Razorpay__Secret: ${RAZORPAY_SECRET}
     ports:
-      - "5000:8080"
+      - "5001:8080"
     depends_on:
       postgres:
         condition: service_healthy
