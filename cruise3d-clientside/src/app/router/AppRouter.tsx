@@ -95,6 +95,8 @@ export default function AppRouter() {
           />
           <Route path="testimonials" element={<PlaceholderPage title="Testimonials" />} />
           <Route path="wishlist" element={<PlaceholderPage title="Wishlist" />} />
+          <Route path="about" element={<PlaceholderPage title="About Us" />} />
+          <Route path="contact" element={<PlaceholderPage title="Contact Us" />} />
 
           <Route
             path="admin"

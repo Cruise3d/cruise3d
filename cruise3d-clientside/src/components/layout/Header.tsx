@@ -5,10 +5,10 @@ import { useAuthStore } from '../../app/store/authStore';
 import { theme } from '../../styles/theme';
 
 const navItems = [
-  { label: 'Collections', to: '/products' },
-  { label: 'Materials', to: '/products' },
-  { label: 'Custom', to: '/products' },
-  { label: 'Process', to: '#process' },
+  { label: 'Home', to: '/' },
+  { label: 'Product', to: '/products' },
+  { label: 'About Us', to: '/about' },
+  { label: 'Contact', to: '/contact' },
 ];
 
 export default function Header() {
@@ -53,9 +53,9 @@ export default function Header() {
         {/* Navigation */}
         <nav className="hidden items-center gap-8 md:flex">
           {navItems.map((item) => (
-            <a
+            <Link
               key={item.label}
-              href={item.to}
+              to={item.to}
               className="relative text-sm font-medium transition-all duration-200 after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 hover:after:w-full"
               style={{ 
                 color: colors.text.secondary,
@@ -63,14 +63,13 @@ export default function Header() {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.color = colors.text.primary;
-                e.currentTarget.querySelector('span')?.style.setProperty('--tw-after-width', '100%');
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.color = colors.text.secondary;
               }}
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -209,9 +208,9 @@ export default function Header() {
         >
           <div className="flex flex-col gap-4">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.label}
-                href={item.to}
+                to={item.to}
                 className="text-base font-medium transition-colors duration-200 hover:pl-2"
                 style={{
                   color: colors.text.secondary,
@@ -228,7 +227,7 @@ export default function Header() {
                 }}
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </div>
 

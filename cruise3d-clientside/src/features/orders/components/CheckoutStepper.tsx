@@ -2,7 +2,6 @@ import React from 'react';
 import { clsx } from 'clsx';
 
 export type CheckoutStep =
-  | 'billing'
   | 'shipping'
   | 'summary'
   | 'payment'
@@ -15,11 +14,10 @@ export interface CheckoutStepperProps {
 }
 
 const STEPS: { key: CheckoutStep; label: string; number: number }[] = [
-  { key: 'billing', label: 'Billing Address', number: 1 },
-  { key: 'shipping', label: 'Shipping Address', number: 2 },
-  { key: 'summary', label: 'Order Summary', number: 3 },
-  { key: 'payment', label: 'Payment', number: 4 },
-  { key: 'confirmation', label: 'Confirmation', number: 5 },
+  { key: 'shipping', label: 'Shipping Address', number: 1 },
+  { key: 'summary', label: 'Order Summary', number: 2 },
+  { key: 'payment', label: 'Payment', number: 3 },
+  { key: 'confirmation', label: 'Confirmation', number: 4 },
 ];
 
 export const CheckoutStepper: React.FC<CheckoutStepperProps> = ({

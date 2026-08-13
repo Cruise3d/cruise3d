@@ -8,12 +8,11 @@ import { createRazorpayOrder, verifyPayment, getMyOrders } from '../api';
 import { createAddress } from '../../profile/api';
 import type { AddressId, CreateAddressRequest } from '../../profile/types';
 import type {
-  BillingAddress,
   ShippingAddress,
   PaymentMethod,
 } from '../types';
 
-const initialBillingAddress: BillingAddress = {
+const initialShippingAddress: ShippingAddress = {
   fullName: '',
   email: '',
   phone: '',
@@ -42,12 +41,10 @@ export const CheckoutPage: React.FC = () => {
   const { items, getSubtotal } = useCartStore();
   const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
 
-  const [currentStep, setCurrentStep] = useState<CheckoutStep>('billing');
+  const [currentStep, setCurrentStep] = useState<CheckoutStep>('shipping');
   const [completedSteps, setCompletedSteps] = useState<CheckoutStep[]>([]);
 
-  const [billingAddress, setBillingAddress] = useState<BillingAddress>(initialBillingAddress);
-  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>(initialBillingAddress);
-  const [sameAsBilling, setSameAsBilling] = useState(true);
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>(initialShippingAddress);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('credit-card');
   const [isProcessing, setIsProcessing] = useState(false);
   const [checkoutAddressId, setCheckoutAddressId] = useState<AddressId>('');
@@ -60,11 +57,8 @@ export const CheckoutPage: React.FC = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const getCheckoutAddress = (): BillingAddress | ShippingAddress =>
-    sameAsBilling ? billingAddress : shippingAddress;
-
   const buildCreateAddressPayload = (
-    address: BillingAddress | ShippingAddress
+    address: ShippingAddress
   ): CreateAddressRequest => ({
     fullName: address.fullName.trim(),
     addressLine: [address.addressLine1.trim(), address.addressLine2?.trim()]
@@ -98,49 +92,25 @@ export const CheckoutPage: React.FC = () => {
     return fallback;
   };
 
-  const validateBillingAddress = (): boolean => {
+  const validateShippingAddress = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!billingAddress.fullName.trim()) newErrors.fullName = 'Full name is required';
-    if (!billingAddress.email.trim()) newErrors.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingAddress.email))
+    if (!shippingAddress.fullName.trim()) newErrors.fullName = 'Full name is required';
+    if (!shippingAddress.email.trim()) newErrors.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shippingAddress.email))
       newErrors.email = 'Invalid email address';
-    if (!billingAddress.phone.trim()) newErrors.phone = 'Phone is required';
-    if (!billingAddress.addressLine1.trim()) newErrors.addressLine1 = 'Address is required';
-    if (!billingAddress.country) newErrors.country = 'Country is required';
-    if (!billingAddress.state) newErrors.state = 'State is required';
-    if (!billingAddress.city.trim()) newErrors.city = 'City is required';
-    if (!billingAddress.zipCode.trim()) newErrors.zipCode = 'ZIP code is required';
+    if (!shippingAddress.phone.trim()) newErrors.phone = 'Phone is required';
+    if (!shippingAddress.addressLine1.trim()) newErrors.addressLine1 = 'Address is required';
+    if (!shippingAddress.country) newErrors.country = 'Country is required';
+    if (!shippingAddress.state) newErrors.state = 'State is required';
+    if (!shippingAddress.city.trim()) newErrors.city = 'City is required';
+    if (!shippingAddress.zipCode.trim()) newErrors.zipCode = 'ZIP code is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateShippingAddress = (): boolean => {
-    if (sameAsBilling) return true;
-
-    const newErrors: Record<string, string> = {};
-    if (!shippingAddress.fullName.trim()) newErrors.shippingFullName = 'Full name is required';
-    if (!shippingAddress.email.trim()) newErrors.shippingEmail = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shippingAddress.email))
-      newErrors.shippingEmail = 'Invalid email address';
-    if (!shippingAddress.phone.trim()) newErrors.shippingPhone = 'Phone is required';
-    if (!shippingAddress.addressLine1.trim())
-      newErrors.shippingAddressLine1 = 'Address is required';
-    if (!shippingAddress.country) newErrors.shippingCountry = 'Country is required';
-    if (!shippingAddress.state) newErrors.shippingState = 'State is required';
-    if (!shippingAddress.city.trim()) newErrors.shippingCity = 'City is required';
-    if (!shippingAddress.zipCode.trim()) newErrors.shippingZipCode = 'ZIP code is required';
-
-    setErrors((prev) => ({ ...prev, ...newErrors }));
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleNextStep = () => {
-    if (currentStep === 'billing') {
-      if (!validateBillingAddress()) return;
-      addCompletedStep('billing');
-      setCurrentStep('shipping');
-    } else if (currentStep === 'shipping') {
+    if (currentStep === 'shipping') {
       if (!validateShippingAddress()) return;
       addCompletedStep('shipping');
       setCurrentStep('summary');
@@ -170,8 +140,7 @@ export const CheckoutPage: React.FC = () => {
     setCheckoutAddressId('');
 
     try {
-      const checkoutAddress = getCheckoutAddress();
-      const createAddressPayload = buildCreateAddressPayload(checkoutAddress);
+      const createAddressPayload = buildCreateAddressPayload(shippingAddress);
 
       setPaymentStage('creating-order');
       const createdAddress = await createAddress(createAddressPayload);
@@ -303,8 +272,7 @@ export const CheckoutPage: React.FC = () => {
   };
 
   const renderAddressForm = (
-    address: BillingAddress | ShippingAddress,
-    prefix: string,
+    address: ShippingAddress,
     title: string
   ) => (
     <div className="space-y-4">
@@ -315,15 +283,10 @@ export const CheckoutPage: React.FC = () => {
             label="Full Name"
             value={address.fullName}
             onChange={(e) => {
-              const field = prefix === 'billing' ? 'fullName' : 'shippingFullName';
-              setErrors((prev) => ({ ...prev, [field]: '' }));
-              if (prefix === 'billing') {
-                setBillingAddress({ ...billingAddress, fullName: e.target.value });
-              } else {
-                setShippingAddress({ ...shippingAddress, fullName: e.target.value });
-              }
+              setErrors((prev) => ({ ...prev, fullName: '' }));
+              setShippingAddress({ ...shippingAddress, fullName: e.target.value });
             }}
-            error={prefix === 'billing' ? errors.fullName : errors.shippingFullName}
+            error={errors.fullName}
             icon="person"
           />
         </div>
@@ -333,15 +296,10 @@ export const CheckoutPage: React.FC = () => {
             type="email"
             value={address.email}
             onChange={(e) => {
-              const field = prefix === 'billing' ? 'email' : 'shippingEmail';
-              setErrors((prev) => ({ ...prev, [field]: '' }));
-              if (prefix === 'billing') {
-                setBillingAddress({ ...billingAddress, email: e.target.value });
-              } else {
-                setShippingAddress({ ...shippingAddress, email: e.target.value });
-              }
+              setErrors((prev) => ({ ...prev, email: '' }));
+              setShippingAddress({ ...shippingAddress, email: e.target.value });
             }}
-            error={prefix === 'billing' ? errors.email : errors.shippingEmail}
+            error={errors.email}
             icon="mail"
           />
         </div>
@@ -351,15 +309,10 @@ export const CheckoutPage: React.FC = () => {
             type="tel"
             value={address.phone}
             onChange={(e) => {
-              const field = prefix === 'billing' ? 'phone' : 'shippingPhone';
-              setErrors((prev) => ({ ...prev, [field]: '' }));
-              if (prefix === 'billing') {
-                setBillingAddress({ ...billingAddress, phone: e.target.value });
-              } else {
-                setShippingAddress({ ...shippingAddress, phone: e.target.value });
-              }
+              setErrors((prev) => ({ ...prev, phone: '' }));
+              setShippingAddress({ ...shippingAddress, phone: e.target.value });
             }}
-            error={prefix === 'billing' ? errors.phone : errors.shippingPhone}
+            error={errors.phone}
             icon="phone"
           />
         </div>
@@ -368,15 +321,10 @@ export const CheckoutPage: React.FC = () => {
             label="Address Line 1"
             value={address.addressLine1}
             onChange={(e) => {
-              const field = prefix === 'billing' ? 'addressLine1' : 'shippingAddressLine1';
-              setErrors((prev) => ({ ...prev, [field]: '' }));
-              if (prefix === 'billing') {
-                setBillingAddress({ ...billingAddress, addressLine1: e.target.value });
-              } else {
-                setShippingAddress({ ...shippingAddress, addressLine1: e.target.value });
-              }
+              setErrors((prev) => ({ ...prev, addressLine1: '' }));
+              setShippingAddress({ ...shippingAddress, addressLine1: e.target.value });
             }}
-            error={prefix === 'billing' ? errors.addressLine1 : errors.shippingAddressLine1}
+            error={errors.addressLine1}
             icon="home"
           />
         </div>
@@ -385,11 +333,7 @@ export const CheckoutPage: React.FC = () => {
             label="Address Line 2 (Optional)"
             value={address.addressLine2 || ''}
             onChange={(e) => {
-              if (prefix === 'billing') {
-                setBillingAddress({ ...billingAddress, addressLine2: e.target.value });
-              } else {
-                setShippingAddress({ ...shippingAddress, addressLine2: e.target.value });
-              }
+              setShippingAddress({ ...shippingAddress, addressLine2: e.target.value });
             }}
             icon="apartment"
           />
@@ -399,13 +343,8 @@ export const CheckoutPage: React.FC = () => {
           <select
             value={address.country}
             onChange={(e) => {
-              const field = prefix === 'billing' ? 'country' : 'shippingCountry';
-              setErrors((prev) => ({ ...prev, [field]: '' }));
-              if (prefix === 'billing') {
-                setBillingAddress({ ...billingAddress, country: e.target.value });
-              } else {
-                setShippingAddress({ ...shippingAddress, country: e.target.value });
-              }
+              setErrors((prev) => ({ ...prev, country: '' }));
+              setShippingAddress({ ...shippingAddress, country: e.target.value });
             }}
             className="w-full px-3.5 py-2 text-sm bg-white border rounded-lg border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
           >
@@ -416,10 +355,8 @@ export const CheckoutPage: React.FC = () => {
               </option>
             ))}
           </select>
-          {prefix === 'billing' ? errors.country && (
+          {errors.country && (
             <p className="text-xs text-red-600 mt-1">{errors.country}</p>
-          ) : errors.shippingCountry && (
-            <p className="text-xs text-red-600 mt-1">{errors.shippingCountry}</p>
           )}
         </div>
         <div>
@@ -427,13 +364,8 @@ export const CheckoutPage: React.FC = () => {
           <select
             value={address.state}
             onChange={(e) => {
-              const field = prefix === 'billing' ? 'state' : 'shippingState';
-              setErrors((prev) => ({ ...prev, [field]: '' }));
-              if (prefix === 'billing') {
-                setBillingAddress({ ...billingAddress, state: e.target.value });
-              } else {
-                setShippingAddress({ ...shippingAddress, state: e.target.value });
-              }
+              setErrors((prev) => ({ ...prev, state: '' }));
+              setShippingAddress({ ...shippingAddress, state: e.target.value });
             }}
             className="w-full px-3.5 py-2 text-sm bg-white border rounded-lg border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
           >
@@ -444,10 +376,8 @@ export const CheckoutPage: React.FC = () => {
               </option>
             ))}
           </select>
-          {prefix === 'billing' ? errors.state && (
+          {errors.state && (
             <p className="text-xs text-red-600 mt-1">{errors.state}</p>
-          ) : errors.shippingState && (
-            <p className="text-xs text-red-600 mt-1">{errors.shippingState}</p>
           )}
         </div>
         <div>
@@ -455,15 +385,10 @@ export const CheckoutPage: React.FC = () => {
             label="City"
             value={address.city}
             onChange={(e) => {
-              const field = prefix === 'billing' ? 'city' : 'shippingCity';
-              setErrors((prev) => ({ ...prev, [field]: '' }));
-              if (prefix === 'billing') {
-                setBillingAddress({ ...billingAddress, city: e.target.value });
-              } else {
-                setShippingAddress({ ...shippingAddress, city: e.target.value });
-              }
+              setErrors((prev) => ({ ...prev, city: '' }));
+              setShippingAddress({ ...shippingAddress, city: e.target.value });
             }}
-            error={prefix === 'billing' ? errors.city : errors.shippingCity}
+            error={errors.city}
             icon="location_city"
           />
         </div>
@@ -472,15 +397,10 @@ export const CheckoutPage: React.FC = () => {
             label="ZIP Code"
             value={address.zipCode}
             onChange={(e) => {
-              const field = prefix === 'billing' ? 'zipCode' : 'shippingZipCode';
-              setErrors((prev) => ({ ...prev, [field]: '' }));
-              if (prefix === 'billing') {
-                setBillingAddress({ ...billingAddress, zipCode: e.target.value });
-              } else {
-                setShippingAddress({ ...shippingAddress, zipCode: e.target.value });
-              }
+              setErrors((prev) => ({ ...prev, zipCode: '' }));
+              setShippingAddress({ ...shippingAddress, zipCode: e.target.value });
             }}
-            error={prefix === 'billing' ? errors.zipCode : errors.shippingZipCode}
+            error={errors.zipCode}
             icon="pin_drop"
           />
         </div>
@@ -711,37 +631,10 @@ export const CheckoutPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Form */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Billing Address */}
-            {currentStep === 'billing' && (
-              <div className="bg-surface-container-low rounded-2xl p-6 border border-surface-container-highest">
-                {renderAddressForm(billingAddress, 'billing', 'Billing Address')}
-              </div>
-            )}
-
             {/* Shipping Address */}
             {currentStep === 'shipping' && (
               <div className="bg-surface-container-low rounded-2xl p-6 border border-surface-container-highest space-y-6">
-                {renderAddressForm(billingAddress, 'billing', 'Billing Address')}
-
-                <div className="pt-4 border-t border-surface-container-highest">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={sameAsBilling}
-                      onChange={(e) => setSameAsBilling(e.target.checked)}
-                      className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
-                    />
-                    <span className="text-sm font-medium text-on-surface">
-                      Shipping address same as billing
-                    </span>
-                  </label>
-                </div>
-
-                {!sameAsBilling && (
-                  <div className="pt-4 border-t border-surface-container-highest">
-                    {renderAddressForm(shippingAddress, 'shipping', 'Shipping Address')}
-                  </div>
-                )}
+                {renderAddressForm(shippingAddress, 'Shipping Address')}
               </div>
             )}
 
@@ -823,18 +716,14 @@ export const CheckoutPage: React.FC = () => {
                   {errors.submit}
                 </div>
               )}
-              {currentStep !== 'billing' && (
+              {currentStep !== 'shipping' && (
                 <Button
                   variant="outline"
                   onClick={() => {
-                    const currentIndex = ['billing', 'shipping', 'summary'].indexOf(
-                      currentStep
-                    );
+                    const currentIndex = ['shipping', 'summary'].indexOf(currentStep);
                     if (currentIndex > 0) {
                       setCurrentStep(
-                        ['billing', 'shipping', 'summary'][
-                          currentIndex - 1
-                        ] as CheckoutStep
+                        ['shipping', 'summary'][currentIndex - 1] as CheckoutStep
                       );
                     }
                   }}
