@@ -8,8 +8,8 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 
 # Build-time Vite env vars. Override at build time with:
-#   docker build --build-arg VITE_API_BASE_URL=https://api.example.com/api .
-ARG VITE_API_BASE_URL=http://localhost:5000/api
+#   docker build --build-arg VITE_API_BASE_URL=/api .
+ARG VITE_API_BASE_URL=/api
 ARG VITE_RAZORPAY_KEY_ID=rzp_test_TMSkzp2w2veJtm
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
     VITE_RAZORPAY_KEY_ID=$VITE_RAZORPAY_KEY_ID
