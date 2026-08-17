@@ -151,11 +151,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
       >
         <div className="flex items-baseline gap-1.5">
           <span className="text-lg font-bold" style={{ color: colors.text.primary }}>
-            ${product.price.toFixed(2)}
+            ₹{product.price.toFixed(2)}
           </span>
           {product.originalPrice && (
             <span className="text-xs line-through" style={{ color: colors.text.tertiary }}>
-              ${product.originalPrice.toFixed(2)}
+              ₹{product.originalPrice.toFixed(2)}
             </span>
           )}
         </div>

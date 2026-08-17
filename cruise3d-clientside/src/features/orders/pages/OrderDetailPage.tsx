@@ -344,7 +344,7 @@ export const OrderDetailPage: React.FC = () => {
                               Qty: {quantity}
                             </span>
                             <span className="font-bold text-on-surface">
-                              ${(price * quantity).toFixed(2)}
+                              ₹{(price * quantity).toFixed(2)}
                             </span>
                           </div>
                         </div>
@@ -416,7 +416,7 @@ export const OrderDetailPage: React.FC = () => {
               <div className="space-y-2 pt-4 border-t border-surface-container-highest">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-on-surface-variant">Subtotal</span>
-                  <span className="font-medium text-on-surface">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium text-on-surface">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-on-surface-variant">Shipping</span>
@@ -424,17 +424,17 @@ export const OrderDetailPage: React.FC = () => {
                     {shipping === 0 ? (
                       <span className="text-tertiary font-bold">FREE</span>
                     ) : (
-                      `$${shipping.toFixed(2)}`
+                      `₹${shipping.toFixed(2)}`
                     )}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-on-surface-variant">Tax</span>
-                  <span className="font-medium text-on-surface">${tax.toFixed(2)}</span>
+                  <span className="font-medium text-on-surface">₹{tax.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-surface-container-highest text-base font-bold">
                   <span className="text-on-surface">Total</span>
-                  <span className="text-primary text-xl">${total.toFixed(2)}</span>
+                  <span className="text-primary text-xl">₹{total.toFixed(2)}</span>
                 </div>
               </div>
 

@@ -394,7 +394,7 @@ export default function ProductListPage() {
                   setSelectedProduct(null);
                 }}
               >
-                {selectedProduct.inStock ? `Add to Cart - $${selectedProduct.price.toFixed(2)}` : 'Out of Stock'}
+                {selectedProduct.inStock ? `Add to Cart - ₹${selectedProduct.price.toFixed(2)}` : 'Out of Stock'}
               </Button>
             )}
           </>
@@ -440,14 +440,14 @@ export default function ProductListPage() {
                   className="text-2xl font-extrabold"
                   style={{ color: colors.text.primary }}
                 >
-                  ${selectedProduct.price.toFixed(2)}
+                  ₹{selectedProduct.price.toFixed(2)}
                 </span>
                 {selectedProduct.originalPrice && (
                   <span 
                     className="text-sm line-through"
                     style={{ color: colors.text.tertiary }}
                   >
-                    ${selectedProduct.originalPrice.toFixed(2)}
+                    ₹{selectedProduct.originalPrice.toFixed(2)}
                   </span>
                 )}
               </div>

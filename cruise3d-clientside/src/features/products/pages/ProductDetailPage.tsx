@@ -290,11 +290,11 @@ export default function ProductDetailPage() {
             {/* Price + stock */}
             <div className="flex items-baseline gap-3">
               <span className="text-3xl font-extrabold tracking-tight" style={{ color: colors.text.primary }}>
-                ${product.price.toFixed(2)}
+                ₹{product.price.toFixed(2)}
               </span>
               {product.originalPrice && (
                 <span className="text-base line-through" style={{ color: colors.text.tertiary }}>
-                  ${product.originalPrice.toFixed(2)}
+                  ₹{product.originalPrice.toFixed(2)}
                 </span>
               )}
               <span
@@ -405,7 +405,7 @@ export default function ProductDetailPage() {
             {/* Trust badges */}
             <div className="grid grid-cols-3 gap-3 pt-2">
               {[
-                { icon: 'local_shipping', label: 'Free express', sub: 'On orders over $150' },
+                { icon: 'local_shipping', label: 'Free express', sub: 'On orders over ₹500' },
                 { icon: 'verified', label: 'Micron precision', sub: '±0.05 mm tolerance' },
                 { icon: 'lock', label: 'Encrypted', sub: '256-bit SSL checkout' },
               ].map((badge) => (

@@ -37,7 +37,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = ({ item }) => {
 
       {/* Price Column */}
       <td className="py-4 px-4 text-sm font-semibold text-gray-800 whitespace-nowrap">
-        ${item.priceAtAddition.toFixed(2)}
+        ₹{item.priceAtAddition.toFixed(2)}
       </td>
 
       {/* Quantity Stepper Column (- 1 +) */}
@@ -67,7 +67,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = ({ item }) => {
 
       {/* Line Total Column */}
       <td className="py-4 px-4 text-sm font-bold text-gray-900 whitespace-nowrap">
-        ${lineTotal.toFixed(2)}
+        ₹{lineTotal.toFixed(2)}
       </td>
 
       {/* Remove (X) Column */}

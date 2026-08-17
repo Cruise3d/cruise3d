@@ -18,22 +18,51 @@ const initialShippingAddress: ShippingAddress = {
   phone: '',
   addressLine1: '',
   addressLine2: '',
-  country: 'United States',
+  country: 'India',
   state: '',
   city: '',
   zipCode: '',
 };
 
-const COUNTRIES = ['United States', 'Canada', 'United Kingdom', 'Australia', 'Germany'];
-const US_STATES = [
-  'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
-  'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
-  'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
-  'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-  'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
-  'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
-  'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
-  'Wisconsin', 'Wyoming',
+const COUNTRIES = ['India', 'United States', 'United Kingdom', 'Canada', 'Australia', 'Germany', 'United Arab Emirates', 'Singapore'];
+
+const INDIAN_STATES = [
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chhattisgarh',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
+  'Andaman and Nicobar Islands',
+  'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Jammu and Kashmir',
+  'Ladakh',
+  'Lakshadweep',
+  'Puducherry',
 ];
 
 export const CheckoutPage: React.FC = () => {
@@ -103,7 +132,11 @@ export const CheckoutPage: React.FC = () => {
     if (!shippingAddress.country) newErrors.country = 'Country is required';
     if (!shippingAddress.state) newErrors.state = 'State is required';
     if (!shippingAddress.city.trim()) newErrors.city = 'City is required';
-    if (!shippingAddress.zipCode.trim()) newErrors.zipCode = 'ZIP code is required';
+    if (!shippingAddress.zipCode.trim()) {
+      newErrors.zipCode = 'PIN code is required';
+    } else if (shippingAddress.country === 'India' && !/^\d{6}$/.test(shippingAddress.zipCode.trim())) {
+      newErrors.zipCode = 'Enter a valid 6-digit PIN code';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -370,7 +403,7 @@ export const CheckoutPage: React.FC = () => {
             className="w-full px-3.5 py-2 text-sm bg-white border rounded-lg border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
           >
             <option value="">Select State</option>
-            {US_STATES.map((state) => (
+            {INDIAN_STATES.map((state) => (
               <option key={state} value={state}>
                 {state}
               </option>
@@ -394,7 +427,8 @@ export const CheckoutPage: React.FC = () => {
         </div>
         <div>
           <Input
-            label="ZIP Code"
+            label="PIN Code"
+            placeholder="6-digit PIN code"
             value={address.zipCode}
             onChange={(e) => {
               setErrors((prev) => ({ ...prev, zipCode: '' }));
@@ -434,7 +468,7 @@ export const CheckoutPage: React.FC = () => {
               <div className="flex items-center justify-between mt-1">
                 <span className="text-xs text-on-surface-variant">Qty: {item.quantity}</span>
                 <span className="font-semibold text-on-surface text-sm">
-                  ${(item.priceAtAddition * item.quantity).toFixed(2)}
+                  ₹{(item.priceAtAddition * item.quantity).toFixed(2)}
                 </span>
               </div>
             </div>
@@ -445,7 +479,7 @@ export const CheckoutPage: React.FC = () => {
       <div className="space-y-2 pt-4 border-t border-surface-container-highest">
         <div className="flex items-center justify-between text-sm">
           <span className="text-on-surface-variant">Subtotal</span>
-          <span className="font-medium text-on-surface">${subtotal.toFixed(2)}</span>
+          <span className="font-medium text-on-surface">₹{subtotal.toFixed(2)}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-on-surface-variant">Shipping</span>
@@ -453,17 +487,17 @@ export const CheckoutPage: React.FC = () => {
             {shipping === 0 ? (
               <span className="text-tertiary font-bold">FREE</span>
             ) : (
-              `$${shipping.toFixed(2)}`
+              `₹${shipping.toFixed(2)}`
             )}
           </span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-on-surface-variant">Tax (5%)</span>
-          <span className="font-medium text-on-surface">${tax.toFixed(2)}</span>
+          <span className="font-medium text-on-surface">₹{tax.toFixed(2)}</span>
         </div>
         <div className="flex items-center justify-between pt-2 border-t border-surface-container-highest text-base font-bold">
           <span className="text-on-surface">Total</span>
-          <span className="text-primary text-xl">${total.toFixed(2)}</span>
+          <span className="text-primary text-xl">₹{total.toFixed(2)}</span>
         </div>
       </div>
     </div>
@@ -778,7 +812,7 @@ export const CheckoutPage: React.FC = () => {
                       <p className="text-xs text-on-surface-variant">Qty: {item.quantity}</p>
                     </div>
                     <span className="font-semibold text-on-surface text-sm">
-                      ${(item.priceAtAddition * item.quantity).toFixed(2)}
+                      ₹{(item.priceAtAddition * item.quantity).toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -788,7 +822,7 @@ export const CheckoutPage: React.FC = () => {
               <div className="space-y-2 pt-4 border-t border-surface-container-highest">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-on-surface-variant">Subtotal</span>
-                  <span className="font-medium text-on-surface">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium text-on-surface">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-on-surface-variant">Shipping</span>
@@ -796,17 +830,17 @@ export const CheckoutPage: React.FC = () => {
                     {shipping === 0 ? (
                       <span className="text-tertiary font-bold">FREE</span>
                     ) : (
-                      `$${shipping.toFixed(2)}`
+                      `₹${shipping.toFixed(2)}`
                     )}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-on-surface-variant">Tax (5%)</span>
-                  <span className="font-medium text-on-surface">${tax.toFixed(2)}</span>
+                  <span className="font-medium text-on-surface">₹{tax.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-surface-container-highest text-base font-bold">
                   <span className="text-on-surface">Total</span>
-                  <span className="text-primary text-xl">${total.toFixed(2)}</span>
+                  <span className="text-primary text-xl">₹{total.toFixed(2)}</span>
                 </div>
               </div>
             </div>

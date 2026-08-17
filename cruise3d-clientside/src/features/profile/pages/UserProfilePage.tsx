@@ -293,7 +293,7 @@ export const UserProfilePage: React.FC = () => {
                                 </p>
                               </div>
                               <div className="text-right flex-shrink-0">
-                                <p className="font-bold text-on-surface">${totalAmt.toFixed(2)}</p>
+                                <p className="font-bold text-on-surface">₹{totalAmt.toFixed(2)}</p>
                               </div>
                             </div>
                           );

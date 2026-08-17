@@ -77,7 +77,7 @@ export const CartPage: React.FC = () => {
               <div className="md:hidden bg-surface-container-low rounded-2xl border border-surface-container-highest p-6 space-y-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-on-surface-variant">Subtotal</span>
-                  <span className="font-semibold text-on-surface">${subtotal.toFixed(2)}</span>
+                  <span className="font-semibold text-on-surface">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-on-surface-variant">Shipping</span>
@@ -85,20 +85,20 @@ export const CartPage: React.FC = () => {
                     {subtotal > 150 ? (
                       <span className="text-tertiary font-bold">FREE</span>
                     ) : (
-                      '$20.00'
+                      '₹20.00'
                     )}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-on-surface-variant">Tax (5%)</span>
                   <span className="font-semibold text-on-surface">
-                    ${(subtotal * 0.05).toFixed(2)}
+                    ₹{(subtotal * 0.05).toFixed(2)}
                   </span>
                 </div>
                 <div className="pt-4 border-t border-surface-container-highest flex items-center justify-between">
                   <span className="font-bold text-on-surface">Total</span>
                   <span className="text-xl font-bold text-primary">
-                    ${(subtotal + (subtotal > 150 ? 0 : 20) + subtotal * 0.05).toFixed(2)}
+                    ₹{(subtotal + (subtotal > 150 ? 0 : 20) + subtotal * 0.05).toFixed(2)}
                   </span>
                 </div>
               </div>

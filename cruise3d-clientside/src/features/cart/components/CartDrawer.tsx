@@ -198,7 +198,7 @@ export const CartDrawer: React.FC = () => {
                             className="font-bold text-sm"
                             style={{ color: colors.text.primary }}
                           >
-                            ${lineTotal.toFixed(2)}
+                            ₹{lineTotal.toFixed(2)}
                           </span>
                         </div>
                       </div>
@@ -248,7 +248,7 @@ export const CartDrawer: React.FC = () => {
                     className="font-medium"
                     style={{ color: colors.text.primary }}
                   >
-                    ${subtotal.toFixed(2)}
+                    ₹{subtotal.toFixed(2)}
                   </span>
                 </div>
                 <div 
@@ -265,7 +265,7 @@ export const CartDrawer: React.FC = () => {
                         FREE
                       </span>
                     ) : (
-                      `$${shipping.toFixed(2)}`
+                      `₹${shipping.toFixed(2)}`
                     )}
                   </span>
                 </div>
@@ -278,7 +278,7 @@ export const CartDrawer: React.FC = () => {
                     className="font-medium"
                     style={{ color: colors.text.primary }}
                   >
-                    ${tax.toFixed(2)}
+                    ₹{tax.toFixed(2)}
                   </span>
                 </div>
                 <div 
@@ -293,7 +293,7 @@ export const CartDrawer: React.FC = () => {
                     className="text-lg"
                     style={{ color: colors.primary.DEFAULT }}
                   >
-                    ${total.toFixed(2)}
+                    ₹{total.toFixed(2)}
                   </span>
                 </div>
               </div>
