@@ -12,7 +12,7 @@ Usage:
   .\scripts\seed-admin.ps1 -Password 'MyP@ssw0rd!'
 
   # pass a connection string directly (overrides appsettings)
-  .\scripts\seed-admin.ps1 -ConnectionString "Host=localhost;Port=5433;Database=cruise3d;Username=postgres;Password=..."
+  .\scripts\seed-admin.ps1 -ConnectionString "Host=localhost;Port=5432;Database=cruise3d;Username=postgres;Password=..."
 #>
 
 Set-Location -Path (Split-Path -Path $MyInvocation.MyCommand.Definition -Parent -ErrorAction SilentlyContinue)
