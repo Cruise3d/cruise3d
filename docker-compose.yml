@@ -23,8 +23,10 @@ services:
     volumes:
       - ./cruise3d-api/docker/postgres-init:/docker-entrypoint-initdb.d:ro
       - postgres_data:/var/lib/postgresql/data
+    # Bind port 5432 strictly to localhost (127.0.0.1) so Postgres is NOT exposed to the public internet.
+    # The API service connects to Postgres internally via the Docker bridge network ('postgres:5432').
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost || exit 1"]
       interval: 5s
