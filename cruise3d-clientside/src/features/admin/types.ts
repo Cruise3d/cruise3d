@@ -72,6 +72,7 @@ export interface AdminOrder {
   status: 'pending' | 'confirmed' | 'printing' | 'shipped' | 'delivered' | 'cancelled';
   paymentStatus: 'unpaid' | 'paid' | 'failed' | 'refunded';
   paymentId?: string;
+  dtdcTrackingId?: string | null;
   subtotal: number;
   shippingCharge: number;
   totalAmount: number;

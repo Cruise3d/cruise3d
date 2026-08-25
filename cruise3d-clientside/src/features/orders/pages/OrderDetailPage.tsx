@@ -14,13 +14,20 @@ export const OrderDetailPage: React.FC = () => {
   const location = useLocation();
   const { orderId } = useParams<{ orderId: string }>();
   const passedOrder = (location.state as { order?: Order } | null)?.order;
+  const hasFullPassedOrder = Boolean(
+    passedOrder &&
+    (passedOrder.items?.length ||
+      (passedOrder as unknown as Record<string, unknown>).orderItems)
+  );
 
-  const [order, setOrder] = useState<Order | null>(passedOrder ?? null);
-  const [isLoading, setIsLoading] = useState(!passedOrder);
+  const [order, setOrder] = useState<Order | null>(
+    hasFullPassedOrder ? (passedOrder as Order) : null
+  );
+  const [isLoading, setIsLoading] = useState(!hasFullPassedOrder);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (passedOrder) {
+    if (hasFullPassedOrder && passedOrder) {
       setOrder(passedOrder);
       setIsLoading(false);
       return;
@@ -52,7 +59,7 @@ export const OrderDetailPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [orderId, passedOrder]);
+  }, [orderId, passedOrder, hasFullPassedOrder]);
 
   if (isLoading) {
     return (
@@ -154,6 +161,13 @@ export const OrderDetailPage: React.FC = () => {
     }
   };
 
+  const dtdcTrackingId = (
+    order.dtdcTrackingId ||
+    (order as unknown as Record<string, string>).dtdc_tracking_id ||
+    order.trackingNumber ||
+    ''
+  ).trim();
+
   return (
     <main className="min-h-screen bg-surface px-6 py-12">
       <div className="mx-auto max-w-container-max">
@@ -248,7 +262,7 @@ export const OrderDetailPage: React.FC = () => {
                           {status === 'placed' && formatDate(order.createdAt)}
                           {status === 'processing' && formatDate(order.updatedAt)}
                           {status === 'printing' && 'In Progress'}
-                          {status === 'shipped' && order.trackingNumber && 'Shipped'}
+                          {status === 'shipped' && dtdcTrackingId && 'Shipped'}
                         </span>
                       )}
                     </div>
@@ -355,26 +369,76 @@ export const OrderDetailPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Courier & Tracking (DTDC) */}
+            <div className="bg-surface-container-low rounded-2xl p-6 border border-surface-container-highest">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-xl text-on-surface-variant">
+                    local_shipping
+                  </span>
+                  <h2 className="text-lg font-semibold text-on-surface">Shipment Tracking</h2>
+                </div>
+                {dtdcTrackingId && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                    DTDC Express
+                  </span>
+                )}
+              </div>
+
+              {dtdcTrackingId ? (
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-surface-container border border-surface-container-highest">
+                    <div>
+                      <span className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+                        DTDC Tracking ID
+                      </span>
+                      <p className="mt-1 font-mono text-base font-bold text-on-surface select-all">
+                        {dtdcTrackingId}
+                      </p>
+                    </div>
+                    <a
+                      href={`https://track.dtdc.com/tracking?trNo=${encodeURIComponent(dtdcTrackingId)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm bg-primary text-on-primary hover:bg-primary/90 transition-all shadow-sm flex-shrink-0"
+                    >
+                      <span className="material-symbols-outlined text-base">local_shipping</span>
+                      Track on DTDC
+                      <span className="material-symbols-outlined text-sm">open_in_new</span>
+                    </a>
+                  </div>
+                  <p className="text-xs text-on-surface-variant">
+                    Click &ldquo;Track on DTDC&rdquo; to view real-time delivery status on the official courier portal.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-surface-container border border-surface-container-highest">
+                  <span className="material-symbols-outlined text-on-surface-variant text-xl mt-0.5">
+                    schedule
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium text-on-surface">
+                      Tracking information not available yet
+                    </p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">
+                      Your order is being processed. The DTDC tracking ID will appear here once your shipment is dispatched.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Shipping Address */}
             <div className="bg-surface-container-low rounded-2xl p-6 border border-surface-container-highest">
               <div className="flex items-center gap-2 mb-4">
                 <span className="material-symbols-outlined text-xl text-on-surface-variant">
-                  local_shipping
+                  home_pin
                 </span>
                 <h2 className="text-lg font-semibold text-on-surface">Shipping Address</h2>
               </div>
-              {formatAddress(order.shippingAddress)}
-              {order.trackingNumber && (
-                <div className="mt-4 pt-4 border-t border-surface-container-highest">
-                  <p className="text-sm text-on-surface-variant">
-                    Tracking: <span className="font-mono text-on-surface">{order.trackingNumber}</span>
-                  </p>
-                  {order.shippingCarrier && (
-                    <p className="text-sm text-on-surface-variant">
-                      Carrier: {order.shippingCarrier}
-                    </p>
-                  )}
-                </div>
+              {formatAddress(
+                order.shippingAddress ||
+                ((order as unknown as Record<string, unknown>).address as Order['shippingAddress'])
               )}
             </div>
 
@@ -402,7 +466,12 @@ export const OrderDetailPage: React.FC = () => {
               <div className="space-y-2 text-sm mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-on-surface-variant">Order Date</span>
-                  <span className="text-on-surface">{formatDate(order.createdAt)}</span>
+                  <span className="text-on-surface">
+                    {formatDate(
+                      order.createdAt ||
+                      ((order as unknown as Record<string, string>).placedAt)
+                    )}
+                  </span>
                 </div>
                 {order.estimatedDelivery && (
                   <div className="flex items-center justify-between">

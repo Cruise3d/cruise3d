@@ -139,6 +139,17 @@ export async function updateOrderStatus(
   return axiosClient.put<AdminOrder>(`/orders/${orderId}/status`, payload);
 }
 
+export interface OrderTrackingUpdatePayload {
+  dtdcTrackingId: string | null;
+}
+
+export async function updateOrderTracking(
+  orderId: string,
+  payload: OrderTrackingUpdatePayload
+) {
+  return axiosClient.put<AdminOrder>(`/orders/${orderId}/tracking`, payload);
+}
+
 // Testimonials - Admin (placeholder)
 export async function fetchAdminTestimonials() {
   // Placeholder - returns empty array as API is not implemented

@@ -131,7 +131,9 @@ public class OrderService : IOrderService
     // ─── GET ORDER BY ID ─────────────────────────────────────────────────────
     public async Task<OrderResponseDto> GetByIdAsync(Guid orderId, Guid customerId)
     {
-        var order = await _orders.GetByIdAsync(orderId)
+        // Use the items-included overload so customer detail responses
+        // carry OrderItems and the related Product data needed by the UI.
+        var order = await _orders.GetByIdWithItemsAsync(orderId)
             ?? throw new Exception("Order not found.");
 
         // Customer can only see their own orders
@@ -208,6 +210,25 @@ public class OrderService : IOrderService
         return MapToResponse(order);
     }
 
+    // ─── ADMIN: UPDATE DTDC TRACKING ID ──────────────────────────────────────
+    public async Task<OrderResponseDto> UpdateTrackingAsync(Guid orderId, string? dtdcTrackingId)
+    {
+        var order = await _orders.GetByIdAsync(orderId)
+            ?? throw new Exception("Order not found.");
+
+        // Normalize: empty/whitespace → null (clears the tracking ID).
+        var normalized = string.IsNullOrWhiteSpace(dtdcTrackingId)
+            ? null
+            : dtdcTrackingId.Trim();
+
+        order.DtdcTrackingId = normalized;
+        order.UpdatedAt      = DateTime.UtcNow;
+
+        await _orders.UpdateAsync(order);
+
+        return MapToResponse(order);
+    }
+
     // ─── MAPPING HELPER ───────────────────────────────────────────────────────
     private static OrderResponseDto MapToResponse(Order o) => new()
     {
@@ -218,6 +239,7 @@ public class OrderService : IOrderService
         Status         = o.Status,
         PaymentStatus  = o.PaymentStatus,
         PaymentId      = o.PaymentId,
+        DtdcTrackingId = o.DtdcTrackingId,
         PlacedAt       = o.PlacedAt,
         Address = new OrderAddressDto
         {

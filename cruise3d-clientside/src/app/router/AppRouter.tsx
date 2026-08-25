@@ -6,6 +6,7 @@ import ProductListPage from '../../features/products/pages/ProductListPage'
 import ProductDetailPage from '../../features/products/pages/ProductDetailPage'
 import CartPage from '../../features/cart/pages/CartPage'
 import CheckoutPage from '../../features/orders/pages/CheckoutPage'
+import MyOrdersPage from '../../features/orders/pages/MyOrdersPage'
 import OrderDetailPage from '../../features/orders/pages/OrderDetailPage'
 import LoginPage from '../../features/auth/pages/LoginPage'
 import RegisterPage from '../../features/auth/pages/RegisterPage'
@@ -81,7 +82,7 @@ export default function AppRouter() {
             path="orders"
             element={
               <ProtectedRoute>
-                <PlaceholderPage title="Order History" />
+                <MyOrdersPage />
               </ProtectedRoute>
             }
           />

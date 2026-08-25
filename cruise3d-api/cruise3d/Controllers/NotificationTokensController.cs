@@ -43,6 +43,7 @@ public class NotificationTokensController : ControllerBase
     }
 
     [HttpDelete("{token}")]
+    [AllowAnonymous]
     public async Task<IActionResult> Unregister(string token)
     {
         await _notifications.UnsubscribeAdminAsync(token); // safe no-op for non-admins

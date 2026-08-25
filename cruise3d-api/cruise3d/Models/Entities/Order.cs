@@ -17,6 +17,7 @@ namespace cruise3d.Models.Entities
         public string? PaymentProvider { get; set; }
         public string? RazorpayOrderId { get; set; }
         public string? RazorpayPaymentId { get; set; }
+        public string? DtdcTrackingId { get; set; }
         public DateTime PlacedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 

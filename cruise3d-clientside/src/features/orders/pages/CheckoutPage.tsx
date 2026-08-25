@@ -244,7 +244,7 @@ export const CheckoutPage: React.FC = () => {
             };
 
             // 3) Verify payment with backend
-            const verifiedOrder = await verifyPayment(verifyPayload);
+            const verificationResult = await verifyPayment(verifyPayload);
 
             // Backend verification succeeded. Refresh cart and orders, navigate to success.
             // Clear local cart state immediately
@@ -257,8 +257,18 @@ export const CheckoutPage: React.FC = () => {
               await getMyOrders();
             } catch {}
 
-            // Navigate to order detail / success page
-            navigate(`/orders/${verifiedOrder.id}`, { state: { order: verifiedOrder } });
+            // Extract the created order ID from the verification response
+            const targetOrderId =
+              verificationResult?.orderId ||
+              (verificationResult as unknown as Record<string, string>)?.OrderId ||
+              (verificationResult as unknown as Record<string, string>)?.id;
+
+            // Navigate to order detail page
+            if (targetOrderId) {
+              navigate(`/orders/${targetOrderId}`);
+            } else {
+              navigate('/orders');
+            }
 
           } catch (err) {
             const message = err instanceof Error ? err.message : 'Payment verification failed.';

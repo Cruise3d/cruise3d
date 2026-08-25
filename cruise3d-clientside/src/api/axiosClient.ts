@@ -66,11 +66,16 @@ axiosClient.interceptors.response.use(
   },
   (error: AxiosError) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      // Soft dispatch: let the AuthProvider clear the auth state and let
-      // route guards (ProtectedRoute) handle the redirect. Avoid forcing
-      // a hard navigation here so the user is not kicked out mid-action.
+      const hadToken = !!localStorage.getItem('accessToken');
       localStorage.removeItem('accessToken');
-      window.dispatchEvent(new CustomEvent('auth:logout'));
+
+      const isNotificationTokenUrl = error.config?.url?.includes('/notification-tokens');
+      if (hadToken && !isNotificationTokenUrl) {
+        // Soft dispatch: let the AuthProvider clear the auth state and let
+        // route guards (ProtectedRoute) handle the redirect. Avoid forcing
+        // a hard navigation here so the user is not kicked out mid-action.
+        window.dispatchEvent(new CustomEvent('auth:logout'));
+      }
     }
 
     return Promise.reject(error);

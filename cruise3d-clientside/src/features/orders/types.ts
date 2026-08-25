@@ -59,6 +59,15 @@ export interface Order {
   estimatedDelivery?: string;
   trackingNumber?: string;
   shippingCarrier?: string;
+  dtdcTrackingId?: string | null;
+}
+
+export interface VerifyPaymentResponse {
+  orderId: string;
+  paymentStatus: string;
+  orderStatus: string;
+  paymentId: string;
+  totalAmount: number;
 }
 
 export interface CheckoutFormData {

@@ -63,6 +63,13 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         entity.Property(o => o.RazorpayPaymentId)
               .HasMaxLength(100);
 
+        entity.Property(o => o.DtdcTrackingId)
+              .HasMaxLength(50);
+
+        entity.HasIndex(o => o.DtdcTrackingId)
+              .IsUnique()
+              .HasFilter("dtdc_tracking_id IS NOT NULL");
+
         entity.Property(o => o.PlacedAt)
               .HasDefaultValueSql("NOW()");
 

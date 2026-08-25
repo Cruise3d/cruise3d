@@ -13,6 +13,7 @@ public interface IOrderService
     Task<(IEnumerable<OrderResponseDto> Items, int Total)> GetAllOrdersAsync(
         string? status, int page, int pageSize);
     Task<OrderResponseDto> UpdateStatusAsync(Guid orderId, string status);
+    Task<OrderResponseDto> UpdateTrackingAsync(Guid orderId, string? dtdcTrackingId);
 
     // Create an order from a persisted payment intent (server-side verified).
     Task<OrderResponseDto> CreateOrderFromPaymentIntentAsync(Guid customerId, cruise3d.Models.Entities.Payment paymentIntent, Guid addressId);

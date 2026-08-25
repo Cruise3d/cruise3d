@@ -1,6 +1,6 @@
 import axiosClient from '@/api/axiosClient';
 
-import type { CheckoutFormData, Order, OrderStatus } from './types';
+import type { CheckoutFormData, Order, OrderStatus, VerifyPaymentResponse } from './types';
 import type { AddressId } from '../profile/types';
 
 export type CreateOrderPayload = CheckoutFormData;
@@ -52,7 +52,7 @@ export interface VerifyPaymentPayload {
 }
 
 export async function verifyPayment(payload: VerifyPaymentPayload) {
-  return axiosClient.post<Order>('/payments/verify', payload);
+  return axiosClient.post<VerifyPaymentResponse>('/payments/verify', payload);
 }
 
 export async function getMyOrders() {

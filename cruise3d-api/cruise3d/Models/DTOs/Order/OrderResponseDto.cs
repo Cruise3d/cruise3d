@@ -12,6 +12,7 @@ public class OrderResponseDto
     public string Status { get; set; } = string.Empty;
     public string PaymentStatus { get; set; } = string.Empty;
     public string? PaymentId { get; set; }
+    public string? DtdcTrackingId { get; set; }
     public DateTime PlacedAt { get; set; }
 
     // Shipping address snapshot

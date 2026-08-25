@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import AdminLayout from '../components/AdminLayout'
 import OrderStatusUpdater from '../components/OrderStatusUpdater'
+import OrderTrackingUpdater from '../components/OrderTrackingUpdater'
 import { fetchAdminOrders } from '../api'
 import type { AdminOrder } from '../types'
 import { theme } from '../../../styles/theme'
@@ -56,6 +57,13 @@ export default function AdminOrdersPage() {
 
   const handleStatusUpdate = () => {
     void loadOrders()
+  }
+
+  const handleTrackingUpdate = (updatedOrder: AdminOrder) => {
+    setOrders((currentOrders) =>
+      currentOrders.map((order) => order.id === updatedOrder.id ? updatedOrder : order),
+    )
+    setSelectedOrder(updatedOrder)
   }
 
   return (
@@ -221,7 +229,10 @@ export default function AdminOrdersPage() {
           )}
         </div>
 
-        <OrderStatusUpdater order={selectedOrder} onStatusUpdate={handleStatusUpdate} />
+        <div className="space-y-6">
+          <OrderStatusUpdater order={selectedOrder} onStatusUpdate={handleStatusUpdate} />
+          <OrderTrackingUpdater order={selectedOrder} onTrackingUpdate={handleTrackingUpdate} />
+        </div>
       </section>
     </AdminLayout>
   )

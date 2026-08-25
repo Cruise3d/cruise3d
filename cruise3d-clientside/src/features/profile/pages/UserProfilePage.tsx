@@ -305,11 +305,23 @@ export const UserProfilePage: React.FC = () => {
                               View Details
                             </Button>
                           </Link>
-                          {order.status === 'shipped' && order.trackingNumber && (
-                            <Button variant="ghost" size="sm">
-                              Track Package
-                            </Button>
-                          )}
+                          {(() => {
+                            const trackingId = (order.dtdcTrackingId || order.trackingNumber || '').trim();
+                            if (trackingId) {
+                              return (
+                                <a
+                                  href={`https://track.dtdc.com/tracking?trNo=${encodeURIComponent(trackingId)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary-container px-3 py-1.5 rounded-lg border border-primary/20 hover:bg-primary/5 transition-colors"
+                                >
+                                  <span className="material-symbols-outlined text-base">local_shipping</span>
+                                  Track Package
+                                </a>
+                              );
+                            }
+                            return null;
+                          })()}
                         </div>
                       </div>
                     ))}

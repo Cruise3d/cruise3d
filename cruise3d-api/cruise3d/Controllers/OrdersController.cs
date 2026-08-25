@@ -85,6 +85,18 @@ public class OrdersController : ControllerBase
         var result = await _orders.UpdateStatusAsync(orderId, dto.Status);
         return Ok(ApiResponse<OrderResponseDto>.Ok(result, "Order status updated."));
     }
+
+    // PUT api/orders/{orderId}/tracking
+    // Admin sets or clears the DTDC tracking ID for an order.
+    // Body: { "dtdcTrackingId": "D1234567890" } or { "dtdcTrackingId": null }
+    [HttpPut("{orderId}/tracking")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> UpdateTracking(
+        Guid orderId, [FromBody] UpdateOrderTrackingDto dto)
+    {
+        var result = await _orders.UpdateTrackingAsync(orderId, dto.DtdcTrackingId);
+        return Ok(ApiResponse<OrderResponseDto>.Ok(result, "DTDC tracking ID updated."));
+    }
 }
 
 public class UpdateOrderStatusDto
