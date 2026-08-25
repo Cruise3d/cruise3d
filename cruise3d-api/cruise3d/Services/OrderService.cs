@@ -2,6 +2,7 @@
 using cruise3d.Models.Entities;
 using cruise3d.API.Repositories.Interfaces;
 using cruise3d.API.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace cruise3d.API.Services;
@@ -11,17 +12,23 @@ public class OrderService : IOrderService
     private readonly IOrderRepository  _orders;
     private readonly ICartRepository   _carts;
     private readonly IProductRepository _products;
+    private readonly INotificationService _notifications;
+    private readonly ILogger<OrderService> _logger;
 
     private const decimal ShippingCharge = 60m; // ₹60 flat shipping
 
     public OrderService(
         IOrderRepository orders,
         ICartRepository carts,
-        IProductRepository products)
+        IProductRepository products,
+        INotificationService notifications,
+        ILogger<OrderService> logger)
     {
-        _orders   = orders;
-        _carts    = carts;
-        _products = products;
+        _orders        = orders;
+        _carts         = carts;
+        _products      = products;
+        _notifications = notifications;
+        _logger        = logger;
     }
 
     // ─── PLACE ORDER ─────────────────────────────────────────────────────────
@@ -98,6 +105,19 @@ public class OrderService : IOrderService
         // 8. Clear the cart
         await _carts.DeleteByUserIdAsync(customerId);
 
+        // 9. Fire-and-forget admin notification for COD orders.
+        //    Payment-intent (Razorpay) orders already notify admins
+        //    inside CreateOrderFromPaymentIntentAsync.
+        try
+        {
+            await _notifications.SendNewOrderAsync(order);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "FCM admin notification failed for COD order {Id}", order.Id);
+        }
+
         return MapToResponse(order);
     }
 
@@ -162,6 +182,29 @@ public class OrderService : IOrderService
         order.UpdatedAt = DateTime.UtcNow;
 
         await _orders.UpdateAsync(order);
+
+        // Fire-and-forget — notify the customer their order moved forward.
+        // Failures must never break a committed status change.
+        try
+        {
+            await _notifications.SendToUserAsync(
+                order.CustomerId,
+                $"Order {status}",
+                $"Your order #{order.Id.ToString()[..8]} is now {status}.",
+                new Dictionary<string, string>
+                {
+                    ["orderId"] = order.Id.ToString(),
+                    ["status"]  = status,
+                    ["type"]    = "order_status"
+                });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "FCM status-change notification failed for order {Id}",
+                order.Id);
+        }
+
         return MapToResponse(order);
     }
 
@@ -273,6 +316,16 @@ public class OrderService : IOrderService
 
         // Clear cart for the user
         await _carts.DeleteByUserIdAsync(customerId);
+
+        // Fire-and-forget — never let a notification failure break a committed order
+        try
+        {
+            await _notifications.SendNewOrderAsync(order);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "FCM notification failed for order {Id}", order.Id);
+        }
 
         return MapToResponse(order);
     }

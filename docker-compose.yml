@@ -41,11 +41,17 @@ services:
     restart: unless-stopped
     environment:
       TZ: UTC
-      ASPNETCORE_ENVIRONMENT: Development
+      # Default to Development locally, but allow servers to override this to Production.
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-cruise3d};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres123}"
+      # Use the public site URL for web-push click-throughs. Override per environment.
+      App__PublicUrl: ${APP_PUBLIC_URL:-https://localhost}
       Razorpay__Key: ${RAZORPAY_KEY}
       Razorpay__Secret: ${RAZORPAY_SECRET}
+      Firebase__CredentialsPath: ${FIREBASE_CREDENTIALS_PATH:-/app/secrets/firebase-adminsdk.json}
+    volumes:
+      - ./secrets:/app/secrets:ro
     ports:
       - "5001:8080"
     depends_on:
@@ -59,6 +65,13 @@ services:
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
         VITE_RAZORPAY_KEY_ID: ${VITE_RAZORPAY_KEY_ID}
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID}
+        VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET}
+        VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID}
+        VITE_FIREBASE_VAPID_KEY: ${VITE_FIREBASE_VAPID_KEY}
     image: cruise3d-frontend:prod
     ports:
       - "80:80"
@@ -80,6 +93,13 @@ services:
     environment:
       VITE_API_BASE_URL: http://localhost:5001/api
       VITE_RAZORPAY_KEY_ID: ${VITE_RAZORPAY_KEY_ID}
+      VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY}
+      VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN}
+      VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID}
+      VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID}
+      VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID}
+      VITE_FIREBASE_VAPID_KEY: ${VITE_FIREBASE_VAPID_KEY}
     volumes:
       # Bind-mount source for HMR. The anonymous /app/node_modules
       # volume keeps the in-container node_modules (avoiding Windows

@@ -1,8 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { useAuthStore } from '@/app/store/authStore';
 import { useCartStore } from '@/features/cart/useCartStore';
 import { getMe } from '@/features/auth/api';
+import { showToast } from '@/components/ui/toastEvents';
+import {
+  onForegroundMessage,
+  registerFcmToken,
+  unregisterFcmToken,
+  getNotificationMessage,
+} from '@/lib/notifications/fcm';
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -15,6 +22,10 @@ interface AuthProviderProps {
  * (and resets the client cart on logout).
  */
 export default function AuthProvider({ children }: AuthProviderProps) {
+  const fcmUnsubscribeRef = useRef<null | (() => void)>(null);
+  const fcmRegisteredRef = useRef(false);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   useEffect(() => {
     const { token, user, logout } = useAuthStore.getState();
 
@@ -38,8 +49,14 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const handleAuthLogout = () => {
-      logout();
-      useCartStore.getState().reset();
+      void (async () => {
+        await unregisterFcmToken();
+        logout();
+        useCartStore.getState().reset();
+        fcmUnsubscribeRef.current?.();
+        fcmUnsubscribeRef.current = null;
+        fcmRegisteredRef.current = false;
+      })();
     };
 
     window.addEventListener('auth:logout', handleAuthLogout);
@@ -59,6 +76,42 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     });
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      fcmUnsubscribeRef.current?.();
+      fcmUnsubscribeRef.current = null;
+      fcmRegisteredRef.current = false;
+      return;
+    }
+
+    if (fcmRegisteredRef.current) return;
+
+    let cancelled = false;
+
+    void registerFcmToken()
+      .then(() => {
+        if (cancelled) return;
+
+        fcmUnsubscribeRef.current?.();
+        fcmUnsubscribeRef.current = onForegroundMessage((payload) => {
+          if (document.visibilityState !== 'visible') return;
+
+          showToast(getNotificationMessage(payload), 'info');
+        });
+
+        fcmRegisteredRef.current = true;
+      })
+      .catch(() => {
+        fcmRegisteredRef.current = false;
+      });
+
+    return () => {
+      cancelled = true;
+      fcmUnsubscribeRef.current?.();
+      fcmUnsubscribeRef.current = null;
+    };
+  }, [isAuthenticated]);
 
   return <>{children}</>;
 }

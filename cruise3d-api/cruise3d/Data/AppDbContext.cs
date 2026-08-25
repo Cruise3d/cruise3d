@@ -23,6 +23,7 @@ namespace cruise3d.API.Data
         public DbSet<Review> Reviews => Set<Review>();
         public DbSet<Testimonial> Testimonials => Set<Testimonial>();
         public DbSet<NewsletterSubscriber> NewsletterSubscribers => Set<NewsletterSubscriber>();
+        public DbSet<NotificationToken> NotificationTokens => Set<NotificationToken>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,33 +43,33 @@ namespace cruise3d.API.Data
                 var schema = entity.GetSchema();
                 if (!string.IsNullOrEmpty(tableName))
                 {
-                    entity.SetTableName(ToSnakeCase(tableName));
+                    entity.SetTableName(ToSnakeCase(tableName!));
                 }
                 if (!string.IsNullOrEmpty(schema))
                 {
-                    entity.SetSchema(ToSnakeCase(schema));
+                    entity.SetSchema(ToSnakeCase(schema!));
                 }
 
                 foreach (var property in entity.GetProperties())
                 {
-                    var columnName = property.GetColumnName(StoreObjectIdentifier.Table(tableName, entity.GetSchema()));
+                    var columnName = property.GetColumnName(StoreObjectIdentifier.Table(tableName!, entity.GetSchema()));
                     if (!string.IsNullOrEmpty(columnName))
-                        property.SetColumnName(ToSnakeCase(columnName));
+                        property.SetColumnName(ToSnakeCase(columnName!));
                 }
 
                 foreach (var key in entity.GetKeys())
                 {
-                    key.SetName(ToSnakeCase(key.GetName()));
+                    key.SetName(ToSnakeCase(key.GetName()!));
                 }
 
                 foreach (var fk in entity.GetForeignKeys())
                 {
-                    fk.SetConstraintName(ToSnakeCase(fk.GetConstraintName()));
+                    fk.SetConstraintName(ToSnakeCase(fk.GetConstraintName()!));
                 }
 
                 foreach (var index in entity.GetIndexes())
                 {
-                    index.SetDatabaseName(ToSnakeCase(index.GetDatabaseName()));
+                    index.SetDatabaseName(ToSnakeCase(index.GetDatabaseName()!));
                 }
             }
         }

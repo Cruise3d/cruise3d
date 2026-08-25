@@ -26,8 +26,8 @@ docker compose up --build frontend-dev
 docker compose --profile with-backend up --build frontend-dev
 ```
 
-Build args (`VITE_API_BASE_URL`, `VITE_RAZORPAY_KEY_ID`) are baked into the
-production image at build time:
+Build args (`VITE_API_BASE_URL`, `VITE_RAZORPAY_KEY_ID`, and the Firebase
+`VITE_FIREBASE_*` values) are baked into the production image at build time:
 
 ```bash
 docker compose build --build-arg VITE_API_BASE_URL=https://api.example.com/api frontend

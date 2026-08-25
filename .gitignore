@@ -2,3 +2,9 @@
 .env
 .env.local
 .env.*.local
+
+# Secrets & Service Account keys
+secrets/*.json
+!secrets/README.md
+!secrets/.gitkeep
+*firebase-adminsdk*.json

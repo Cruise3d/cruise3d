@@ -64,6 +64,87 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<cruise3d.API.Repositories.Interfaces.IPaymentRepository, cruise3d.API.Repositories.PaymentRepository>();
 builder.Services.AddScoped<cruise3d.API.Services.Interfaces.IPaymentService, cruise3d.API.Services.PaymentService>();
 
+// Firebase Admin SDK init — add before builder.Build()
+var fbPath = builder.Configuration["Firebase:CredentialsPath"]
+    ?? builder.Configuration["FIREBASE_CREDENTIALS_PATH"]
+    ?? "secrets/firebase-adminsdk.json";
+
+string? resolvedFbPath = null;
+var candidatePaths = new[]
+{
+    fbPath,
+    Path.Combine(builder.Environment.ContentRootPath, fbPath),
+    Path.Combine(Directory.GetCurrentDirectory(), fbPath),
+    Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "..", fbPath)),
+    Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", fbPath)),
+    Path.Combine(AppContext.BaseDirectory, fbPath),
+    Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "..", "secrets", "firebase-adminsdk.json")),
+    Path.Combine(builder.Environment.ContentRootPath, "secrets", "firebase-adminsdk.json"),
+    "/app/secrets/firebase-adminsdk.json"
+};
+
+foreach (var candidate in candidatePaths)
+{
+    if (!string.IsNullOrWhiteSpace(candidate) && File.Exists(candidate))
+    {
+        resolvedFbPath = candidate;
+        break;
+    }
+}
+
+// Fallback: auto-discover any "*firebase-adminsdk*.json" file inside any
+// "secrets/" directory near the app. This lets operators drop the file with
+// whatever name Firebase generated (e.g. "<project>-firebase-adminsdk-<hash>.json")
+// and have it picked up without renaming or setting env vars.
+if (string.IsNullOrEmpty(resolvedFbPath))
+{
+    var secretsDirs = new[]
+    {
+        Path.Combine(builder.Environment.ContentRootPath, "secrets"),
+        Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "secrets")),
+        Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "..", "secrets")),
+        "/app/secrets"
+    };
+
+    foreach (var dir in secretsDirs)
+    {
+        if (!Directory.Exists(dir)) continue;
+        var found = Directory.EnumerateFiles(dir, "*firebase-adminsdk*.json", SearchOption.TopDirectoryOnly)
+                              .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+                              .FirstOrDefault();
+        if (!string.IsNullOrEmpty(found))
+        {
+            resolvedFbPath = found;
+            break;
+        }
+    }
+}
+
+if (!string.IsNullOrEmpty(resolvedFbPath))
+{
+    try
+    {
+        FirebaseAdmin.FirebaseApp.Create(new FirebaseAdmin.AppOptions
+        {
+            Credential = Google.Apis.Auth.OAuth2.GoogleCredential.FromFile(resolvedFbPath)
+        });
+        Console.WriteLine($"✓ Firebase Admin SDK initialized successfully from: {resolvedFbPath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"⚠️  Failed to initialize Firebase Admin SDK: {ex.Message}");
+    }
+}
+else
+{
+    Console.WriteLine("⚠️  Firebase credentials not found (checked secrets/firebase-adminsdk.json and any *firebase-adminsdk*.json in nearby secrets/ dirs) — push notifications disabled.");
+}
+
+// DI registrations — add alongside existing services
+builder.Services.AddScoped<INotificationTokenRepository, NotificationTokenRepository>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHostedService<NotificationTokenSweeper>();
+
 // Bind Razorpay options from configuration
 builder.Services.Configure<cruise3d.API.Models.Settings.RazorpayOptions>(
     builder.Configuration.GetSection("Razorpay"));

@@ -219,10 +219,14 @@ All design tokens are centralized in [`src/styles/theme.ts`](file:///c:/cruise3D
 - **Backend API**: Running on `http://localhost:5000` (or configured in `.env`)
 
 ### 8.2 Environment Configuration
-Create a `.env` file in `cruise3d-clientside/` (or copy from `.env.example`):
+Create a `.env` file in the repository root (`C:\cruise3D`) or export the same
+variables in your shell before starting Vite:
 ```env
 VITE_API_BASE_URL=http://localhost:5000/api
 ```
+
+The Vite config loads env files from the repo root, so the same `.env` file
+works for local `npm run dev` and the Docker Compose frontend services.
 
 ### 8.3 Key NPM Scripts
 
