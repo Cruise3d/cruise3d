@@ -1076,6 +1076,164 @@ Example response:
 }
 ```
 
+## Offer Endpoints
+
+Manages promotional offer messages displayed in the storefront banner.
+
+### GET `/api/offers/active`
+
+Public endpoint. Returns the currently active offer (the one whose `isActive` flag is true and whose `startDate`/`endDate` window includes the current time). If no offer is active, the response is `200 OK` with `data: null` so the storefront banner can render nothing cleanly.
+
+Example response:
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "3a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
+    "message": "Flat 20% off on all 3D printed models — limited time!",
+    "startDate": "2026-08-01T00:00:00Z",
+    "endDate": "2026-08-31T23:59:59Z",
+    "isActive": true,
+    "createdAt": "2026-08-01T10:15:00Z",
+    "updatedAt": "2026-08-01T10:15:00Z"
+  }
+}
+```
+
+### GET `/api/offers`
+
+Admin only. Lists all offers (active and inactive).
+
+Example response:
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {
+      "id": "3a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
+      "message": "Flat 20% off on all 3D printed models — limited time!",
+      "startDate": "2026-08-01T00:00:00Z",
+      "endDate": "2026-08-31T23:59:59Z",
+      "isActive": true,
+      "createdAt": "2026-08-01T10:15:00Z",
+      "updatedAt": "2026-08-01T10:15:00Z"
+    }
+  ]
+}
+```
+
+### GET `/api/offers/{id}`
+
+Admin only. Returns a single offer by id.
+
+Example response:
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "3a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
+    "message": "Flat 20% off on all 3D printed models — limited time!",
+    "startDate": "2026-08-01T00:00:00Z",
+    "endDate": "2026-08-31T23:59:59Z",
+    "isActive": true,
+    "createdAt": "2026-08-01T10:15:00Z",
+    "updatedAt": "2026-08-01T10:15:00Z"
+  }
+}
+```
+
+### POST `/api/offers`
+
+Admin only. Creates a new offer.
+
+Request body:
+
+```json
+{
+  "message": "Flat 20% off on all 3D printed models — limited time!",
+  "startDate": "2026-08-01T00:00:00Z",
+  "endDate": "2026-08-31T23:59:59Z",
+  "isActive": true
+}
+```
+
+Field rules:
+
+- `message`: required, max 1000 characters, must not be blank
+- `startDate`: required, ISO-8601 datetime (UTC preferred; naive values are coerced to UTC)
+- `endDate`: required, must be later than `startDate`
+- `isActive`: optional, defaults to `true`
+
+Example response:
+
+```json
+{
+  "success": true,
+  "message": "Offer created successfully.",
+  "data": {
+    "id": "3a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
+    "message": "Flat 20% off on all 3D printed models — limited time!",
+    "startDate": "2026-08-01T00:00:00Z",
+    "endDate": "2026-08-31T23:59:59Z",
+    "isActive": true,
+    "createdAt": "2026-08-01T10:15:00Z",
+    "updatedAt": "2026-08-01T10:15:00Z"
+  }
+}
+```
+
+### PUT `/api/offers/{id}`
+
+Admin only. Updates an existing offer. All fields are optional; only the ones provided are applied. The `endDate` must still be later than `startDate` after the merge.
+
+Request body:
+
+```json
+{
+  "message": "Extended: Flat 25% off on all 3D printed models!",
+  "endDate": "2026-09-15T23:59:59Z",
+  "isActive": true
+}
+```
+
+Example response:
+
+```json
+{
+  "success": true,
+  "message": "Offer updated successfully.",
+  "data": {
+    "id": "3a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
+    "message": "Extended: Flat 25% off on all 3D printed models!",
+    "startDate": "2026-08-01T00:00:00Z",
+    "endDate": "2026-09-15T23:59:59Z",
+    "isActive": true,
+    "createdAt": "2026-08-01T10:15:00Z",
+    "updatedAt": "2026-08-05T09:00:00Z"
+  }
+}
+```
+
+### DELETE `/api/offers/{id}`
+
+Admin only. Deletes the offer with the given id.
+
+Example response:
+
+```json
+{
+  "success": true,
+  "message": "Offer deleted successfully.",
+  "data": "Offer deleted."
+}
+```
+
 ## Placeholder Endpoints
 
 These controllers currently return stubbed or placeholder responses and are not fully implemented.

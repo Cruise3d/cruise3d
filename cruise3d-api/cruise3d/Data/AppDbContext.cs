@@ -1,4 +1,4 @@
-﻿using cruise3d.Models.Entities;
+using cruise3d.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System.Text;
@@ -24,6 +24,7 @@ namespace cruise3d.API.Data
         public DbSet<Testimonial> Testimonials => Set<Testimonial>();
         public DbSet<NewsletterSubscriber> NewsletterSubscribers => Set<NewsletterSubscriber>();
         public DbSet<NotificationToken> NotificationTokens => Set<NotificationToken>();
+        public DbSet<Offer> Offers => Set<Offer>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

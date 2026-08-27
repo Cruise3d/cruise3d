@@ -15,6 +15,7 @@ import AdminDashboardPage from '../../features/admin/pages/AdminDashboardPage'
 import AdminProductsPage from '../../features/admin/pages/AdminProductsPage'
 import AdminOrdersPage from '../../features/admin/pages/AdminOrdersPage'
 import AdminCategoriesPage from '../../features/admin/pages/AdminCategoriesPage'
+import AdminOffersPage from '../../features/admin/pages/AdminOffersPage'
 import AdminTestimonialsPage from '../../features/admin/pages/AdminTestimonialsPage'
 import ProtectedRoute from './ProtectedRoute'
 import AdminRoute from './AdminRoute'
@@ -144,6 +145,14 @@ export default function AppRouter() {
             element={
               <AdminRoute>
                 <AdminCategoriesPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="admin/offers"
+            element={
+              <AdminRoute>
+                <AdminOffersPage />
               </AdminRoute>
             }
           />

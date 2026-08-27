@@ -1,4 +1,4 @@
-﻿import { NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { theme } from '../../styles/theme'
 
 const links = [
@@ -6,6 +6,7 @@ const links = [
   { label: 'Products', to: '/admin/products' },
   { label: 'Orders', to: '/admin/orders' },
   { label: 'Categories', to: '/admin/categories' },
+  { label: 'Offers', to: '/admin/offers' },
   { label: 'Testimonials', to: '/admin/testimonials' },
 ]
 

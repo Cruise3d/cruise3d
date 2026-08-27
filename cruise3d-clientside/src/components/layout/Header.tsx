@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useCartStore } from '../../features/cart/useCartStore';
 import { useAuthStore } from '../../app/store/authStore';
+import OfferBanner from '../../features/offers/components/OfferBanner';
 import { theme } from '../../styles/theme';
 
 const navItems = [
@@ -40,6 +41,7 @@ export default function Header() {
         boxShadow: shadows.sm,
       }}
     >
+      <OfferBanner />
       <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-6 py-3 lg:py-4">
         {/* Brand */}
         <Link 
