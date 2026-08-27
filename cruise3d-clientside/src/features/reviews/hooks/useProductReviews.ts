@@ -7,21 +7,24 @@ export interface UseProductReviewsResult {
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  hasLoaded: boolean;
 }
 
 export function useProductReviews(productId: string | undefined): UseProductReviewsResult {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const refetch = useCallback(async () => {
     if (!productId) return;
     setIsLoading(true);
     setError(null);
-    // ✅ REMOVE: setReviews([]) - keep old reviews while loading!
+    // DO NOT clear reviews - keep existing data while loading
     try {
       const list = await getReviewsByProduct(productId);
       setReviews(list);
+      setHasLoaded(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load reviews.';
       setError(message);
@@ -30,5 +33,5 @@ export function useProductReviews(productId: string | undefined): UseProductRevi
     }
   }, [productId]);
 
-  return { reviews, isLoading, error, refetch };
+  return { reviews, isLoading, error, refetch, hasLoaded };
 }

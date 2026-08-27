@@ -53,9 +53,26 @@ export default function ProductDetailPage() {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
 
-  // Reviews
+  // Reviews - UPDATED: Simplified lazy loading
   const reviewsApi = useProductReviews(productId);
-  const { reviews: fetchedReviews, isLoading: reviewsLoading, refetch: reviewsRefetch } = reviewsApi;
+  const { isLoading: reviewsLoading, refetch: reviewsRefetch, hasLoaded } = reviewsApi;
+
+  const [reviewsTabActivated, setReviewsTabActivated] = useState(false);
+
+  // Reset when product changes
+  useEffect(() => {
+    setReviewsTabActivated(false);
+  }, [productId]);
+
+  // When tab becomes active, trigger fetch if needed
+  useEffect(() => {
+    if (activeTab === 'reviews' && !reviewsTabActivated) {
+      setReviewsTabActivated(true);
+      if (!hasLoaded && !reviewsLoading) {
+        reviewsRefetch();
+      }
+    }
+  }, [activeTab, reviewsTabActivated, hasLoaded, reviewsLoading, reviewsRefetch]);
 
   useEffect(() => {
     if (!productId) {
@@ -86,41 +103,6 @@ export default function ProductDetailPage() {
       cancelled = true;
     };
   }, [productId]);
-
-  // Lazy-fetch reviews when the Reviews tab is opened.
-  // Use a "loaded once" guard so we don't retrigger fetches repeatedly and
-  // cause visual blinking. We also avoid refetching if reviews are already present.
-  const [reviewsLoadedOnce, setReviewsLoadedOnce] = useState(false);
-
-  // Reset the "loaded once" flag when the product changes so we attempt to
-  // fetch reviews for the new product when its Reviews tab is opened.
-  useEffect(() => {
-    setReviewsLoadedOnce(false);
-  }, [productId]);
-
-  useEffect(() => {
-    if (activeTab !== 'reviews') return;
-    if (reviewsLoadedOnce) return; // already loaded successfully
-    if (fetchedReviews.length > 0) {
-      setReviewsLoadedOnce(true);
-      return;
-    }
-    if (reviewsLoading) return; // already fetching
-
-    let mounted = true;
-    (async () => {
-      try {
-        await reviewsRefetch();
-        if (mounted) setReviewsLoadedOnce(true);
-      } catch (err) {
-        // keep reviewsLoadedOnce=false so user can retry manually
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-  }, [activeTab, fetchedReviews.length, reviewsLoading, reviewsRefetch, reviewsLoadedOnce]);
 
   if (isLoading) {
     return (
@@ -487,6 +469,7 @@ export default function ProductDetailPage() {
                 reviewsApi={reviewsApi}
                 averageRating={product.rating}
                 reviewCount={product.reviewCount}
+                isActivated={reviewsTabActivated}
               />
             )}
           </div>
@@ -637,14 +620,27 @@ interface ReviewsTabProps {
   reviewsApi: ReturnType<typeof useProductReviews>;
   averageRating: number;
   reviewCount: number;
+  isActivated: boolean;
 }
 
-function ReviewsTab({ reviewsApi, averageRating, reviewCount }: ReviewsTabProps) {
+function ReviewsTab({ reviewsApi, averageRating, reviewCount, isActivated }: ReviewsTabProps) {
   const { colors } = theme;
-  const { reviews, isLoading, error, refetch } = reviewsApi;
+  const { reviews, isLoading, error, refetch, hasLoaded } = reviewsApi;
+
+  // Don't show anything if tab hasn't been activated
+  if (!isActivated) {
+    return (
+      <div className="min-h-[160px] flex items-center justify-center">
+        <p className="text-sm" style={{ color: colors.text.tertiary }}>
+          Click the reviews tab to load customer feedback.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 max-w-3xl">
+      {/* Summary section */}
       <div
         className="flex items-center gap-6 p-6 rounded-2xl"
         style={{ backgroundColor: colors.surface.low, border: `1px solid ${colors.border.light}` }}
@@ -684,8 +680,8 @@ function ReviewsTab({ reviewsApi, averageRating, reviewCount }: ReviewsTabProps)
       </div>
 
       <div className="min-h-[160px]">
-        {/* ✅ Fix: Check loading first */}
-        {isLoading && (
+        {/* Loading skeletons - ONLY on first load */}
+        {isLoading && !hasLoaded && (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div
@@ -719,6 +715,67 @@ function ReviewsTab({ reviewsApi, averageRating, reviewCount }: ReviewsTabProps)
           </div>
         )}
 
+        {/* Blur overlay when refetching (has data already) */}
+        {isLoading && hasLoaded && (
+          <div className="relative">
+            <div 
+              className="absolute inset-0 bg-white/50 rounded-2xl backdrop-blur-[1px] z-10"
+              style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}
+            />
+            <ul className="space-y-5 opacity-50">
+              {reviews.map((review) => (
+                <li
+                  key={review.id}
+                  className="rounded-2xl p-6 space-y-3"
+                  style={{
+                    backgroundColor: colors.surface.DEFAULT,
+                    border: `1px solid ${colors.border.light}`,
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm"
+                        style={{
+                          backgroundColor: colors.surface.high,
+                          color: colors.text.primary,
+                        }}
+                      >
+                        {reviewerInitials(review)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold" style={{ color: colors.text.primary }}>
+                          {reviewerName(review)}
+                        </p>
+                        <p className="text-xs" style={{ color: colors.text.tertiary }}>
+                          {formatReviewDate(review.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-0.5" style={{ color: colors.status.warning.DEFAULT }}>
+                      {[...Array(5)].map((_, i) => (
+                        <span
+                          key={i}
+                          className="material-symbols-outlined text-[1rem]"
+                          style={{ fontVariationSettings: "'FILL' 1" }}
+                        >
+                          {i < review.rating ? 'star' : 'star_outline'}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  {review.comment && (
+                    <p className="text-sm leading-relaxed" style={{ color: colors.text.secondary }}>
+                      {review.comment}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Error state */}
         {error && !isLoading && (
           <div
             className="rounded-xl px-4 py-3 text-sm flex items-center justify-between gap-3"
@@ -739,7 +796,7 @@ function ReviewsTab({ reviewsApi, averageRating, reviewCount }: ReviewsTabProps)
           </div>
         )}
 
-        {/* ✅ Fix: Check if there are reviews before showing empty state */}
+        {/* Reviews list */}
         {!isLoading && !error && reviews.length > 0 && (
           <ul className="space-y-5">
             {reviews.map((review) => (
@@ -793,8 +850,8 @@ function ReviewsTab({ reviewsApi, averageRating, reviewCount }: ReviewsTabProps)
           </ul>
         )}
 
-        {/* ✅ Fix: Empty state shown last */}
-        {!isLoading && !error && reviews.length === 0 && (
+        {/* Empty state - ONLY if we've loaded and there are no reviews */}
+        {!isLoading && !error && hasLoaded && reviews.length === 0 && (
           <div
             className="rounded-2xl p-10 text-center space-y-2"
             style={{
