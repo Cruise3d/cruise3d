@@ -684,10 +684,39 @@ function ReviewsTab({ reviewsApi, averageRating, reviewCount }: ReviewsTabProps)
       </div>
 
       <div className="min-h-[160px]">
+        {/* ✅ Fix: Check loading first */}
         {isLoading && (
-          <p className="text-sm" style={{ color: colors.text.secondary }}>
-            Loading reviews…
-          </p>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="rounded-2xl p-6 space-y-3 animate-pulse"
+                style={{
+                  backgroundColor: colors.surface.low,
+                  border: `1px solid ${colors.border.light}`,
+                }}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-gray-200" />
+                    <div>
+                      <div className="h-4 w-32 bg-gray-200 rounded" />
+                      <div className="h-3 w-20 bg-gray-200 rounded mt-1" />
+                    </div>
+                  </div>
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <div key={star} className="h-4 w-4 bg-gray-200 rounded" />
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 w-full bg-gray-200 rounded" />
+                  <div className="h-3 w-3/4 bg-gray-200 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
         )}
 
         {error && !isLoading && (
@@ -710,29 +739,7 @@ function ReviewsTab({ reviewsApi, averageRating, reviewCount }: ReviewsTabProps)
           </div>
         )}
 
-        {!isLoading && !error && reviews.length === 0 && (
-          <div
-            className="rounded-2xl p-10 text-center space-y-2"
-            style={{
-              backgroundColor: colors.surface.low,
-              border: `1px dashed ${colors.border.light}`,
-            }}
-          >
-            <span
-              className="material-symbols-outlined text-5xl"
-              style={{ color: colors.text.tertiary }}
-            >
-              rate_review
-            </span>
-            <h3 className="text-base font-semibold" style={{ color: colors.text.primary }}>
-              No reviews yet
-            </h3>
-            <p className="text-sm" style={{ color: colors.text.secondary }}>
-              Reviews are available after a customer receives their order.
-            </p>
-          </div>
-        )}
-
+        {/* ✅ Fix: Check if there are reviews before showing empty state */}
         {!isLoading && !error && reviews.length > 0 && (
           <ul className="space-y-5">
             {reviews.map((review) => (
@@ -784,6 +791,30 @@ function ReviewsTab({ reviewsApi, averageRating, reviewCount }: ReviewsTabProps)
               </li>
             ))}
           </ul>
+        )}
+
+        {/* ✅ Fix: Empty state shown last */}
+        {!isLoading && !error && reviews.length === 0 && (
+          <div
+            className="rounded-2xl p-10 text-center space-y-2"
+            style={{
+              backgroundColor: colors.surface.low,
+              border: `1px dashed ${colors.border.light}`,
+            }}
+          >
+            <span
+              className="material-symbols-outlined text-5xl"
+              style={{ color: colors.text.tertiary }}
+            >
+              rate_review
+            </span>
+            <h3 className="text-base font-semibold" style={{ color: colors.text.primary }}>
+              No reviews yet
+            </h3>
+            <p className="text-sm" style={{ color: colors.text.secondary }}>
+              Reviews are available after a customer receives their order.
+            </p>
+          </div>
         )}
       </div>
     </div>

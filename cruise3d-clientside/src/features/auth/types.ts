@@ -30,3 +30,12 @@ export interface AuthResponse {
   role: 'customer' | 'admin';
   phone?: string;
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message?: string;
+}
+
