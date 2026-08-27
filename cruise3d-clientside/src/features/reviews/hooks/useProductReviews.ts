@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-
 import { getReviewsByProduct } from '../api';
 import type { Review } from '../types';
 
@@ -10,11 +9,6 @@ export interface UseProductReviewsResult {
   refetch: () => Promise<void>;
 }
 
-/**
- * Load reviews for a product. Reviews are fetched only when the consumer
- * calls `load()` (so we don't fetch eagerly for every page render) and
- * expose a `refetch` handle for pull-to-refresh / post-submit flows.
- */
 export function useProductReviews(productId: string | undefined): UseProductReviewsResult {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,12 +18,12 @@ export function useProductReviews(productId: string | undefined): UseProductRevi
     if (!productId) return;
     setIsLoading(true);
     setError(null);
+    // ✅ REMOVE: setReviews([]) - keep old reviews while loading!
     try {
       const list = await getReviewsByProduct(productId);
       setReviews(list);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to load reviews.';
+      const message = err instanceof Error ? err.message : 'Failed to load reviews.';
       setError(message);
     } finally {
       setIsLoading(false);
