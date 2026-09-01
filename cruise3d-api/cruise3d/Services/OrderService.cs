@@ -254,9 +254,7 @@ public class OrderService : IOrderService
             Id              = i.Id,
             ProductId       = i.ProductId,
             ProductTitle    = i.Product?.Title ?? string.Empty,
-            ProductImageUrl = i.Product?.Images
-                                .Where(img => img.IsPrimary)
-                                .FirstOrDefault()?.Url,
+            ProductImageUrl = ResolveOrderItemImageUrl(i),
             Quantity        = i.Quantity,
             PriceAtPurchase = i.PriceAtPurchase,
             ItemTotal       = i.PriceAtPurchase * i.Quantity,
@@ -264,6 +262,31 @@ public class OrderService : IOrderService
             ColorHex        = i.ColorHexSnapshot
         }).ToList()
     };
+
+    private static string? ResolveOrderItemImageUrl(OrderItem item)
+    {
+        var images = item.Product?.Images;
+        if (images == null || !images.Any())
+        {
+            return null;
+        }
+
+        var exactColorImage = images.FirstOrDefault(img =>
+            img.ProductColorId == item.ProductColorId && img.IsPrimary);
+        if (exactColorImage != null)
+        {
+            return exactColorImage.Url;
+        }
+
+        var productPrimaryImage = images.FirstOrDefault(img =>
+            img.ProductColorId == null && img.IsPrimary);
+        if (productPrimaryImage != null)
+        {
+            return productPrimaryImage.Url;
+        }
+
+        return null;
+    }
 
     // Create an order from a stored payment intent (server-side verified)
     public async Task<OrderResponseDto> CreateOrderFromPaymentIntentAsync(Guid customerId, cruise3d.Models.Entities.Payment paymentIntent, Guid addressId)

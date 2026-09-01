@@ -65,46 +65,38 @@ export interface AdminProductSpec {
   specValue: string;
   sortOrder?: number;
 }
+export interface AdminOrderAddress {
+  fullName: string;
+  addressLine: string;
+  city: string;
+  state: string;
+  pincode: string;
+}
+
+export interface AdminOrderItem {
+  id: string;
+  productId: string;
+  productTitle: string;
+  productImageUrl?: string | null;
+  quantity: number;
+  priceAtPurchase: number;
+  itemTotal: number;
+  colorName?: string | null;
+  colorHex?: string | null;
+}
 
 export interface AdminOrder {
   id: string;
-  orderNumber: string;
   status: 'pending' | 'confirmed' | 'printing' | 'shipped' | 'delivered' | 'cancelled';
-  paymentStatus: 'unpaid' | 'paid' | 'failed' | 'refunded';
-  paymentId?: string;
+  paymentStatus: 'pending' | 'unpaid' | 'paid' | 'failed' | 'refunded';
+  paymentId?: string | null;
   dtdcTrackingId?: string | null;
   subtotal: number;
   shippingCharge: number;
   totalAmount: number;
   placedAt: string;
-  updatedAt?: string;
-  customerName: string;
-  customerEmail: string;
-  billingAddress: {
-    fullName: string;
-    addressLine: string;
-    city: string;
-    state: string;
-    pincode: string;
-  };
-  shippingAddress: {
-    fullName: string;
-    addressLine: string;
-    city: string;
-    state: string;
-    pincode: string;
-  };
-  items: Array<{
-    id: string;
-    productId: string;
-    productTitle: string;
-    productImageUrl?: string;
-    quantity: number;
-    priceAtPurchase: number;
-    itemTotal: number;
-    colorName?: string;
-    colorHex?: string;
-  }>;
+  address: AdminOrderAddress;
+  items: AdminOrderItem[];
 }
 
 export interface AdminCategory {

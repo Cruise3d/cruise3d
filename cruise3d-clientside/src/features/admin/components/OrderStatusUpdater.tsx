@@ -96,8 +96,8 @@ export default function OrderStatusUpdater({ order, onStatusUpdate }: OrderStatu
         style={{ color: colors.text.secondary }}
       >
         Updating status for order{' '}
-        <span className="font-medium" style={{ color: colors.text.primary }}>
-          {order.orderNumber}
+        <span className="font-mono text-xs font-medium" style={{ color: colors.text.primary }}>
+          {order.id}
         </span>
       </p>
 

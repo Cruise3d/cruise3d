@@ -101,6 +101,15 @@ export default function AppRouter() {
           <Route path="wishlist" element={<PlaceholderPage title="Wishlist" />} />
           <Route path="about" element={<PlaceholderPage title="About Us" />} />
           <Route path="contact" element={<PlaceholderPage title="Contact Us" />} />
+          <Route path="shipping-policy" element={<PlaceholderPage title="Shipping Policy" />} />
+          <Route
+            path="cancellation-refund"
+            element={<PlaceholderPage title="Cancellation & Refunds" />}
+          />
+          <Route
+            path="terms-and-conditions"
+            element={<PlaceholderPage title="Terms and Conditions" />}
+          />
 
           <Route
             path="admin"

@@ -23,6 +23,9 @@ namespace cruise3d.API.Repositories
                 .Include(o => o.Address)
                 .Include(o => o.Items)
                     .ThenInclude(i => i.Product)
+                        .ThenInclude(p => p.Images)
+                .Include(o => o.Items)
+                    .ThenInclude(i => i.ProductColor)
                 .AsQueryable();
 
             if (customerId.HasValue)
@@ -68,6 +71,9 @@ namespace cruise3d.API.Repositories
                 .Include(o => o.Address)
                 .Include(o => o.Items)
                     .ThenInclude(i => i.Product)
+                        .ThenInclude(p => p.Images)
+                .Include(o => o.Items)
+                    .ThenInclude(i => i.ProductColor)
                 .Where(o => o.CustomerId == customerId)
                 .OrderByDescending(o => o.PlacedAt)
                 .ToListAsync();

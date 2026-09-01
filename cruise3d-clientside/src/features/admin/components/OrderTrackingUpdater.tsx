@@ -99,8 +99,8 @@ export default function OrderTrackingUpdater({ order, onTrackingUpdate }: OrderT
       </h3>
       <p className="mt-2 text-sm leading-7" style={{ color: colors.text.secondary }}>
         Add or update the courier tracking ID for order{' '}
-        <span className="font-medium" style={{ color: colors.text.primary }}>
-          {order.orderNumber}
+        <span className="font-mono text-xs font-medium" style={{ color: colors.text.primary }}>
+          {order.id}
         </span>
         .
       </p>

@@ -34,6 +34,59 @@ const featureSteps = [
   },
 ];
 
+type ContactCard =
+  | {
+      icon: string;
+      title: string;
+      value: string;
+      href: string;
+    }
+  | {
+      icon: string;
+      title: string;
+      value: string | string[];
+      href?: undefined;
+    };
+
+const contactCards: ContactCard[] = [
+  {
+    icon: 'call',
+    title: 'Phone / WhatsApp',
+    value: '+91 8719897391',
+    href: 'tel:+918719897391',
+  },
+  {
+    icon: 'mail',
+    title: 'Email',
+    value: 'support@cruise3d.in',
+    href: 'mailto:support@cruise3d.in',
+  },
+  {
+    icon: 'schedule',
+    title: 'Business Hours',
+    value: ['Monday - Saturday', '9:00 AM - 7:00 PM IST'],
+  },
+  {
+    icon: 'support_agent',
+    title: 'Customer Support',
+    value:
+      "For order inquiries, shipping queries, or product-related information, please email us and we'll respond within 24-48 hours.",
+  },
+  {
+    icon: 'location_on',
+    title: 'Business Address',
+    value: [
+      'Cruise Technologies',
+      '2nd Floor',
+      'Vengalethu Towers',
+      'ONK Junction',
+      'Kayamkulam',
+      'Alappuzha District, Kerala',
+      'India',
+    ],
+  },
+];
+
 export default function HomePage() {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -311,6 +364,158 @@ export default function HomePage() {
               Subscribe
             </Button>
           </form>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-20">
+        <div className="mx-auto max-w-[1280px] px-6 space-y-10">
+          <div className="max-w-2xl space-y-3">
+            <p
+              className="text-xs font-semibold uppercase tracking-[0.25em]"
+              style={{ color: colors.primary.DEFAULT }}
+            >
+              Contact
+            </p>
+            <h2
+              className="text-3xl font-extrabold sm:text-4xl tracking-tight"
+              style={{ color: colors.text.primary }}
+            >
+              Get in Touch
+            </h2>
+            <p
+              className="max-w-xl text-sm sm:text-base leading-7"
+              style={{ color: colors.text.secondary }}
+            >
+              Reach out for order updates, shipping questions, partnership
+              discussions, or product support. We keep the conversation simple
+              and direct.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {contactCards.map((card) => {
+              return (
+                <article
+                  key={card.title}
+                  className="rounded-2xl border p-6 sm:p-7"
+                  style={{
+                    backgroundColor: colors.surface.container,
+                    borderColor: colors.border.DEFAULT,
+                    boxShadow: shadows.DEFAULT,
+                  }}
+                >
+                  <div
+                    className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl"
+                    style={{
+                      backgroundColor: colors.surface.low,
+                      color: colors.primary.DEFAULT,
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-2xl">{card.icon}</span>
+                  </div>
+
+                  <h3 className="text-lg font-bold" style={{ color: colors.text.primary }}>
+                    {card.title}
+                  </h3>
+
+                  {'href' in card ? (
+                    <a
+                      href={card.href}
+                      className="mt-3 inline-flex break-words text-sm font-semibold transition"
+                      style={{
+                        color: colors.text.primary,
+                        transition: 'color 0.2s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = colors.primary.DEFAULT;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = colors.text.primary;
+                      }}
+                    >
+                      {card.value}
+                    </a>
+                  ) : Array.isArray(card.value) ? (
+                    <div
+                      className="mt-3 space-y-1 text-sm leading-7"
+                      style={{ color: colors.text.secondary }}
+                    >
+                      {card.value.map((line) => (
+                        <p key={line} className="whitespace-pre-line">
+                          {line}
+                        </p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p
+                      className="mt-3 text-sm leading-7"
+                      style={{ color: colors.text.secondary }}
+                    >
+                      {card.value}
+                    </p>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+
+          <div
+            className="rounded-2xl border px-6 py-6 sm:px-8"
+            style={{
+              backgroundColor: colors.surface.low,
+              borderColor: colors.border.light,
+            }}
+          >
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold" style={{ color: colors.text.primary }}>
+                  Partnership &amp; Wholesale
+                </p>
+                <p className="text-sm leading-7" style={{ color: colors.text.secondary }}>
+                  For partnership and wholesale enquiries, email us at{' '}
+                  <a
+                    href="mailto:support@cruise3d.in"
+                    className="font-semibold transition"
+                    style={{ color: colors.primary.DEFAULT, transition: 'color 0.2s' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = colors.primary.dark;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = colors.primary.DEFAULT;
+                    }}
+                  >
+                    support@cruise3d.in
+                  </a>
+                  .
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  to="/shipping-policy"
+                  className="text-sm font-medium transition"
+                  style={{ color: colors.text.secondary }}
+                >
+                  Shipping Policy
+                </Link>
+                <Link
+                  to="/cancellation-refund"
+                  className="text-sm font-medium transition"
+                  style={{ color: colors.text.secondary }}
+                >
+                  Cancellation &amp; Refunds
+                </Link>
+                <Link
+                  to="/terms-and-conditions"
+                  className="text-sm font-medium transition"
+                  style={{ color: colors.text.secondary }}
+                >
+                  Terms and Conditions
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </div>
