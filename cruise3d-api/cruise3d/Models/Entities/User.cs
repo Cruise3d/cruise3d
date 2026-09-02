@@ -12,13 +12,16 @@ namespace cruise3d.Models.Entities
         public string Role { get; set; } = "customer";
         public string? Phone { get; set; }
         public bool IsActive { get; set; } = true;
+        public bool IsEmailVerified { get; set; }
+        public DateTime? EmailVerifiedAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        // Navigation properties — EF Core uses these to do JOINs
+        // Navigation properties - EF Core uses these to do JOINs
         public ICollection<Address> Addresses { get; set; } = new List<Address>();
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<Cart> Carts { get; set; } = new List<Cart>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public ICollection<EmailVerificationToken> EmailVerificationTokens { get; set; } = new List<EmailVerificationToken>();
     }
 }

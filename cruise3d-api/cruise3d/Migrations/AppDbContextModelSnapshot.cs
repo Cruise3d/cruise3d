@@ -264,6 +264,58 @@ namespace cruise3d.API.Migrations
                     b.ToTable("notification_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("cruise3d.Models.Entities.EmailVerificationToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("p_k_email_verification_tokens");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("i_x_email_verification_tokens_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("i_x_email_verification_tokens_user_id");
+
+                    b.ToTable("email_verification_tokens", null, t =>
+                        {
+                            t.HasCheckConstraint("chk_email_verification_tokens_expires_at", "expires_at > created_at");
+                        });
+                });
+
             modelBuilder.Entity("cruise3d.Models.Entities.Offer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -951,6 +1003,16 @@ namespace cruise3d.API.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<bool>("IsEmailVerified")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_email_verified");
+
+                    b.Property<DateTime?>("EmailVerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("email_verified_at");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1001,11 +1063,25 @@ namespace cruise3d.API.Migrations
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@cruise3d.com",
                             IsActive = true,
+                            IsEmailVerified = true,
+                            EmailVerifiedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Name = "Admin",
                             PasswordHash = "$2a$12$abcdefghijklmnopqrstuvABCDEFGHIJKLMNOPQRSTUV012345",
                             Role = "admin",
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
+                });
+
+            modelBuilder.Entity("cruise3d.Models.Entities.EmailVerificationToken", b =>
+                {
+                    b.HasOne("cruise3d.Models.Entities.User", "User")
+                        .WithMany("EmailVerificationTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("f_k_email_verification_tokens_users_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("cruise3d.Models.Entities.Address", b =>

@@ -24,6 +24,7 @@ namespace cruise3d.API.Data
         public DbSet<Testimonial> Testimonials => Set<Testimonial>();
         public DbSet<NewsletterSubscriber> NewsletterSubscribers => Set<NewsletterSubscriber>();
         public DbSet<NotificationToken> NotificationTokens => Set<NotificationToken>();
+        public DbSet<EmailVerificationToken> EmailVerificationTokens => Set<EmailVerificationToken>();
         public DbSet<Offer> Offers => Set<Offer>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

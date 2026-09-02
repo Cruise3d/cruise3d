@@ -48,12 +48,14 @@ internal static class Program
 
             Console.WriteLine("Using connection: {0}", connectionString.Replace("Password=", "Password=****"));
 
-            var sql = @"INSERT INTO users (id, name, email, password_hash, role, is_active, created_at, updated_at)
-VALUES (@id, @name, @email, crypt(@password, gen_salt('bf', 12)), @role, TRUE, NOW(), NOW())
+            var sql = @"INSERT INTO users (id, name, email, password_hash, role, is_active, is_email_verified, email_verified_at, created_at, updated_at)
+VALUES (@id, @name, @email, crypt(@password, gen_salt('bf', 12)), @role, TRUE, TRUE, NOW(), NOW(), NOW())
 ON CONFLICT (email) DO UPDATE
   SET password_hash = EXCLUDED.password_hash,
       role = EXCLUDED.role,
       is_active = EXCLUDED.is_active,
+      is_email_verified = EXCLUDED.is_email_verified,
+      email_verified_at = EXCLUDED.email_verified_at,
       updated_at = NOW();";
 
             using var conn = new NpgsqlConnection(connectionString);

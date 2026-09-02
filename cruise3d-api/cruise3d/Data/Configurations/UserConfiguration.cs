@@ -56,6 +56,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
               .HasDefaultValue(true)
               .HasColumnName("is_active");
 
+        entity.Property(u => u.IsEmailVerified)
+              .HasDefaultValue(false)
+              .HasColumnName("is_email_verified");
+
+        entity.Property(u => u.EmailVerifiedAt)
+              .HasColumnName("email_verified_at");
+
         entity.Property(u => u.CreatedAt)
               .HasDefaultValueSql("NOW()")
               .HasColumnName("created_at");
@@ -74,6 +81,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             PasswordHash = "$2a$12$abcdefghijklmnopqrstuvABCDEFGHIJKLMNOPQRSTUV012345",
             Role = "admin",
             IsActive = true,
+            IsEmailVerified = true,
+            EmailVerifiedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
         });
