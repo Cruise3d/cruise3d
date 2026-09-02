@@ -1,13 +1,13 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
-using cruise3d.API.Models.Settings;
 using cruise3d.API.Repositories.Interfaces;
 using cruise3d.API.Services.Interfaces;
 using cruise3d.Models.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.WebUtilities;
+using cruise3d.Models.Settings;
 
 namespace cruise3d.API.Services
 {
@@ -49,18 +49,20 @@ namespace cruise3d.API.Services
             return (rawToken, expiresAt, BuildVerificationLink(rawToken));
         }
 
-        public async Task<bool> ConsumeAsync(string rawToken, CancellationToken cancellationToken = default)
+        public async Task<Guid?> ValidateAndConsumeAsync(string rawToken, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(rawToken))
-                return false;
+                return null;
 
             var tokenHash = HashToken(rawToken);
-            return await _tokens.ConsumeAsync(tokenHash, DateTime.UtcNow, DateTime.UtcNow);
+            var now = DateTime.UtcNow;
+            return await _tokens.ValidateAndConsumeAsync(tokenHash, now, cancellationToken);
         }
 
         public async Task RevokeActiveAsync(Guid userId, CancellationToken cancellationToken = default)
         {
-            await _tokens.RevokeActiveByUserIdAsync(userId, DateTime.UtcNow);
+            var now = DateTime.UtcNow;
+            await _tokens.RevokeActiveByUserIdAsync(userId, now);
         }
 
         private string BuildVerificationLink(string rawToken)
@@ -73,7 +75,7 @@ namespace cruise3d.API.Services
                 throw new InvalidOperationException("Frontend public URL is not configured.");
 
             var relativePath = _options.VerificationPath.TrimStart('/');
-            var relativeUri = $"{relativePath}?token={WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(rawToken))}";
+            var relativeUri = $"{relativePath}?token={Uri.EscapeDataString(rawToken)}";
             return new Uri(baseUri, relativeUri).ToString();
         }
 

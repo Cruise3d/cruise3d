@@ -11,6 +11,7 @@ import OrderDetailPage from '../../features/orders/pages/OrderDetailPage'
 import LoginPage from '../../features/auth/pages/LoginPage'
 import RegisterPage from '../../features/auth/pages/RegisterPage'
 import ForgotPasswordPage from '../../features/auth/pages/ForgotPasswordPage'
+import VerifyEmailPage from '../../features/auth/pages/VerifyEmailPage'
 import UserProfilePage from '../../features/profile/pages/UserProfilePage'
 import AdminDashboardPage from '../../features/admin/pages/AdminDashboardPage'
 import AdminProductsPage from '../../features/admin/pages/AdminProductsPage'
@@ -73,6 +74,7 @@ export default function AppRouter() {
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="verify-email" element={<VerifyEmailPage />} />
           <Route
             path="profile"
             element={

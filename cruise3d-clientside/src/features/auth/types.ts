@@ -6,6 +6,7 @@ export interface User {
   phone?: string;
   avatar?: string;
   role: 'customer' | 'admin';
+  isEmailVerified?: boolean;
   createdAt: string;
 }
 
@@ -29,6 +30,7 @@ export interface AuthResponse {
   email: string;
   role: 'customer' | 'admin';
   phone?: string;
+  isEmailVerified?: boolean;
 }
 
 export interface ForgotPasswordRequest {
@@ -38,4 +40,13 @@ export interface ForgotPasswordRequest {
 export interface ForgotPasswordResponse {
   message?: string;
 }
+
+export interface VerifyEmailRequest {
+  token: string;
+}
+
+export interface ResendVerificationRequest {
+  email: string;
+}
+
 

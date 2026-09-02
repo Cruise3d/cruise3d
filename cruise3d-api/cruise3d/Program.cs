@@ -5,6 +5,7 @@ using cruise3d.API.Repositories;
 using cruise3d.API.Repositories.Interfaces;
 using cruise3d.API.Services;
 using cruise3d.API.Services.Interfaces;
+using cruise3d.Models.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -52,6 +53,8 @@ builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IOfferRepository, OfferRepository>();
+builder.Services.AddScoped<IEmailVerificationTokenRepository, EmailVerificationTokenRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
 // ─── SERVICES ─────────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -61,10 +64,15 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IOfferService, OfferService>();
+builder.Services.AddScoped<IEmailVerificationTokenService, EmailVerificationTokenService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
-// Payments
-builder.Services.AddScoped<cruise3d.API.Repositories.Interfaces.IPaymentRepository, cruise3d.API.Repositories.PaymentRepository>();
-builder.Services.AddScoped<cruise3d.API.Services.Interfaces.IPaymentService, cruise3d.API.Services.PaymentService>();
+builder.Services.Configure<BrevoOptions>(builder.Configuration.GetSection("Brevo"));
+builder.Services.Configure<EmailVerificationOptions>(builder.Configuration.GetSection("EmailVerification"));
+builder.Services.AddHttpClient<IBrevoEmailService, BrevoEmailService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.brevo.com/v3/");
+});
 
 // Firebase Admin SDK init — add before builder.Build()
 var fbPath = builder.Configuration["Firebase:CredentialsPath"]
@@ -148,7 +156,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddHostedService<NotificationTokenSweeper>();
 
 // Bind Razorpay options from configuration
-builder.Services.Configure<cruise3d.API.Models.Settings.RazorpayOptions>(
+builder.Services.Configure<RazorpayOptions>(
     builder.Configuration.GetSection("Razorpay"));
 
 // ─── CONTROLLERS + SWAGGER ────────────────────────────────────────────────────

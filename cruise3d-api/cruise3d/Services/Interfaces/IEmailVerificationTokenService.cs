@@ -6,7 +6,7 @@ public interface IEmailVerificationTokenService
         Guid userId,
         CancellationToken cancellationToken = default);
 
-    Task<bool> ConsumeAsync(string rawToken, CancellationToken cancellationToken = default);
+    Task<Guid?> ValidateAndConsumeAsync(string rawToken, CancellationToken cancellationToken = default);
 
     Task RevokeActiveAsync(Guid userId, CancellationToken cancellationToken = default);
 }

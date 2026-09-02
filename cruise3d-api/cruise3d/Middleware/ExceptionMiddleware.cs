@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using cruise3d.API.Models.DTOs.Common;
+using cruise3d.API.Services;
 
 namespace cruise3d.API.Middleware;
 
@@ -36,6 +37,7 @@ public class ExceptionMiddleware
             // Map known client errors to appropriate status codes. All other exceptions are treated as 500.
             var statusCode = ex.Message switch
             {
+                _ when ex is VerificationEmailDeliveryException => (int)HttpStatusCode.ServiceUnavailable,
                 var m when m.Contains("not found", StringComparison.OrdinalIgnoreCase) => (int)HttpStatusCode.NotFound,
                 var m when m.Contains("unauthorized", StringComparison.OrdinalIgnoreCase) => (int)HttpStatusCode.Unauthorized,
                 var m when m.Contains("already exists", StringComparison.OrdinalIgnoreCase) => (int)HttpStatusCode.Conflict,

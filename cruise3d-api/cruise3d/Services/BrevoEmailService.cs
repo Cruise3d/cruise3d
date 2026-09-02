@@ -1,10 +1,11 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using cruise3d.API.Models.Settings;
+using System.Text.Json;
 using cruise3d.API.Services.Interfaces;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using cruise3d.Models.Settings;
 
 namespace cruise3d.API.Services
 {
@@ -73,7 +74,7 @@ namespace cruise3d.API.Services
                     subject,
                     htmlContent,
                     textContent
-                })
+                }, options: new JsonSerializerOptions(JsonSerializerDefaults.Web))
             };
 
             request.Headers.TryAddWithoutValidation("api-key", _options.ApiKey);
@@ -83,13 +84,11 @@ namespace cruise3d.API.Services
             if (response.IsSuccessStatusCode)
                 return;
 
-            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogError(
                 "Brevo verification email failed with status {StatusCode}.",
                 (int)response.StatusCode);
 
-            throw new InvalidOperationException(
-                $"Brevo verification email request failed with status {(int)response.StatusCode}: {responseBody}");
+            throw new InvalidOperationException("Brevo verification email request failed.");
         }
     }
 }

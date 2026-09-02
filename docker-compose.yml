@@ -45,8 +45,17 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-cruise3d};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres123}"
+      Jwt__Key: ${JWT_KEY:?JWT_KEY must be set}
+      Cloudinary__CloudName: ${CLOUDINARY_CLOUD_NAME:?CLOUDINARY_CLOUD_NAME must be set}
+      Cloudinary__ApiKey: ${CLOUDINARY_API_KEY:?CLOUDINARY_API_KEY must be set}
+      Cloudinary__ApiSecret: ${CLOUDINARY_API_SECRET:?CLOUDINARY_API_SECRET must be set}
       # Use the public site URL for web-push click-throughs. Override per environment.
       App__PublicUrl: ${APP_PUBLIC_URL:-https://localhost}
+      Brevo__ApiKey: ${BREVO_API_KEY:-}
+      Brevo__SenderEmail: ${BREVO_SENDER_EMAIL:-no-reply@cruise3d.com}
+      Brevo__SenderName: ${BREVO_SENDER_NAME:-Cruise3D}
+      Brevo__EnabledInDevelopment: ${BREVO_ENABLED_IN_DEVELOPMENT:-false}
+      EmailVerification__TokenLifetimeMinutes: ${EMAIL_VERIFICATION_TOKEN_LIFETIME_MINUTES:-1440}
       Razorpay__Key: ${RAZORPAY_KEY}
       Razorpay__Secret: ${RAZORPAY_SECRET}
       Firebase__CredentialsPath: ${FIREBASE_CREDENTIALS_PATH:-/app/secrets/firebase-adminsdk.json}

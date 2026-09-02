@@ -22,7 +22,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         var result = await _auth.RegisterAsync(dto);
-        return Ok(ApiResponse<AuthResponseDto>.Ok(result, "Registration successful."));
+        return Ok(ApiResponse<RegisterResponseDto>.Ok(result, "Registration successful. Please check your email to verify your account."));
     }
 
     // POST api/auth/login
@@ -44,5 +44,24 @@ public class AuthController : ControllerBase
         var result = await _auth.GetProfileAsync(userId);
         return Ok(ApiResponse<AuthResponseDto>.Ok(result));
     }
+
+    // POST api/auth/verify-email
+    // Public — verifies token sent to user's email
+    [HttpPost("verify-email")]
+    public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequestDto dto)
+    {
+        await _auth.VerifyEmailAsync(dto.Token);
+        return Ok(ApiResponse<string>.Ok(string.Empty, "Email verified successfully."));
+    }
+
+    // POST api/auth/resend-verification
+    // Public — resends verification email
+    [HttpPost("resend-verification")]
+    public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationEmailRequestDto dto)
+    {
+        await _auth.ResendVerificationEmailAsync(dto.Email);
+        return Ok(ApiResponse<string>.Ok(string.Empty, "Verification email sent successfully."));
+    }
 }
+
 

@@ -57,20 +57,47 @@ namespace cruise3d.API.Repositories
             await _db.SaveChangesAsync();
         }
 
-        public async Task<bool> ConsumeAsync(string tokenHash, DateTime consumedAt, DateTime utcNow)
+        public async Task<Guid?> ValidateAndConsumeAsync(
+            string tokenHash,
+            DateTime consumedAt,
+            CancellationToken cancellationToken = default)
         {
+            await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+
             var token = await _db.EmailVerificationTokens
-                .FirstOrDefaultAsync(x => x.TokenHash == tokenHash);
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.TokenHash == tokenHash, cancellationToken);
 
             if (token == null)
-                return false;
+                return null;
 
-            if (token.UsedAt != null || token.RevokedAt != null || token.ExpiresAt <= utcNow)
-                return false;
+            var consumed = await _db.EmailVerificationTokens
+                .Where(x => x.TokenHash == tokenHash &&
+                            x.UsedAt == null &&
+                            x.RevokedAt == null &&
+                            x.ExpiresAt > consumedAt)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.UsedAt, consumedAt), cancellationToken);
 
-            token.UsedAt = consumedAt;
-            await _db.SaveChangesAsync();
-            return true;
+            if (consumed != 1)
+                return null;
+
+            var verified = await _db.Users
+                .Where(x => x.Id == token.UserId && !x.IsEmailVerified)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.IsEmailVerified, true)
+                    .SetProperty(x => x.EmailVerifiedAt, consumedAt)
+                    .SetProperty(x => x.UpdatedAt, consumedAt), cancellationToken);
+
+            if (verified != 1)
+            {
+                var userExists = await _db.Users.AnyAsync(x => x.Id == token.UserId, cancellationToken);
+                if (!userExists)
+                    return null;
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+            return token.UserId;
         }
     }
 }

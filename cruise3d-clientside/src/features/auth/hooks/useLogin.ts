@@ -17,6 +17,7 @@ function mapAuthResponseToUser(response: AuthResponse): User {
     lastName,
     phone: response.phone,
     role: response.role,
+    isEmailVerified: response.isEmailVerified,
     createdAt: new Date().toISOString(),
   };
 }
@@ -33,13 +34,42 @@ export function useLogin() {
 
       try {
         const response = await loginRequest(credentials);
+
+        // Check if account requires email verification
+        if (response.isEmailVerified === false) {
+          const unverifiedErr = new Error(
+            'Your email address is not verified yet. Please verify your email before signing in.'
+          );
+          (unverifiedErr as unknown as { isUnverified: boolean; email: string }).isUnverified = true;
+          (unverifiedErr as unknown as { isUnverified: boolean; email: string }).email = credentials.email;
+          throw unverifiedErr;
+        }
+
         loginSession(mapAuthResponseToUser(response), response.token, response.refreshToken ?? null);
         return response;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Unable to sign in right now.';
+      } catch (err: unknown) {
+        if ((err as { isUnverified?: boolean })?.isUnverified) {
+          throw err;
+        }
+
+        let message = 'Unable to sign in right now.';
+        if (typeof err === 'string') {
+          message = err;
+        } else if (err && typeof err === 'object') {
+          const anyErr = err as Record<string, unknown>;
+          if (anyErr.response && typeof anyErr.response === 'object') {
+            const resData = (anyErr.response as Record<string, unknown>).data as Record<string, unknown> | string;
+            if (typeof resData === 'string') {
+              message = resData;
+            } else if (resData && typeof resData.message === 'string') {
+              message = resData.message;
+            }
+          } else if (typeof anyErr.message === 'string') {
+            message = anyErr.message;
+          }
+        }
         setError(message);
-        throw err;
+        throw new Error(message);
       } finally {
         setIsLoading(false);
       }
@@ -49,3 +79,4 @@ export function useLogin() {
 
   return { login, isLoading, error, setError };
 }
+

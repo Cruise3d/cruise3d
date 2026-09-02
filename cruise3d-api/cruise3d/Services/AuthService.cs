@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using cruise3d.API.Models.DTOs.Auth;
@@ -7,6 +7,7 @@ using cruise3d.API.Repositories.Interfaces;
 using cruise3d.API.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace cruise3d.API.Services;
 
@@ -14,45 +15,76 @@ public class AuthService : IAuthService
 {
     private readonly IUserRepository _users;
     private readonly IConfiguration _config;
+    private readonly IEmailVerificationTokenService _verificationTokenService;
+    private readonly IBrevoEmailService _brevoEmailService;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(IUserRepository users, IConfiguration config)
+    public AuthService(
+        IUserRepository users,
+        IConfiguration config,
+        IEmailVerificationTokenService verificationTokenService,
+        IBrevoEmailService brevoEmailService,
+        ILogger<AuthService> logger)
     {
         _users = users;
         _config = config;
+        _verificationTokenService = verificationTokenService;
+        _brevoEmailService = brevoEmailService;
+        _logger = logger;
     }
 
     // ─── REGISTER ────────────────────────────────────────────────────────────
-    public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
+    public async Task<RegisterResponseDto> RegisterAsync(RegisterDto dto)
     {
         // 1. Check email not already taken
-        if (await _users.EmailExistsAsync(dto.Email))
+        var normalizedEmail = dto.Email.ToLowerInvariant().Trim();
+        if (await _users.EmailExistsAsync(normalizedEmail))
             throw new Exception("Email is already registered.");
 
         // 2. Create user with hashed password
         var user = new User
         {
-            Id           = Guid.NewGuid(),
-            Name         = dto.Name,
-            Email        = dto.Email.ToLower().Trim(),
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            Phone        = dto.Phone,
-            Role         = "customer",   // public registration always customer
-            IsActive     = true,
-            CreatedAt    = DateTime.UtcNow,
-            UpdatedAt    = DateTime.UtcNow
+            Id              = Guid.NewGuid(),
+            Name            = dto.Name.Trim(),
+            Email           = normalizedEmail,
+            PasswordHash    = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Phone           = dto.Phone?.Trim(),
+            Role            = "customer",   // public registration always customer
+            IsActive        = true,
+            IsEmailVerified = false,
+            EmailVerifiedAt = null,
+            CreatedAt       = DateTime.UtcNow,
+            UpdatedAt       = DateTime.UtcNow
         };
 
         await _users.CreateAsync(user);
 
-        // 3. Return token immediately — no need to login separately
-        return BuildAuthResponse(user);
+        // 3. Issue verification token and send email
+        try
+        {
+            var (_, expiresAt, verificationLink) = await _verificationTokenService.IssueAsync(user.Id);
+            await _brevoEmailService.SendVerificationEmailAsync(user.Email, user.Name, verificationLink, expiresAt);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send verification email for user {UserId} ({Email})", user.Id, user.Email);
+            throw new VerificationEmailDeliveryException();
+        }
+
+        // Registration creates an unverified account; authentication happens through login.
+        return new RegisterResponseDto
+        {
+            Name = user.Name,
+            Email = user.Email,
+            IsEmailVerified = user.IsEmailVerified
+        };
     }
 
     // ─── LOGIN ───────────────────────────────────────────────────────────────
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
     {
         // 1. Find user by email
-        var user = await _users.GetByEmailAsync(dto.Email.ToLower().Trim())
+        var user = await _users.GetByEmailAsync(dto.Email.ToLowerInvariant().Trim())
             ?? throw new Exception("Invalid email or password.");
 
         // 2. Check account is active
@@ -76,18 +108,47 @@ public class AuthService : IAuthService
         return BuildAuthResponse(user);
     }
 
+    // ─── VERIFY EMAIL ────────────────────────────────────────────────────────
+    public async Task VerifyEmailAsync(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            throw new Exception("Invalid verification token.");
+
+        var userId = await _verificationTokenService.ValidateAndConsumeAsync(token);
+        if (!userId.HasValue)
+            throw new Exception("Invalid or expired verification link.");
+    }
+
+    // ─── RESEND VERIFICATION EMAIL ───────────────────────────────────────────
+    public async Task ResendVerificationEmailAsync(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new Exception("Email is required.");
+
+        var normalizedEmail = email.ToLowerInvariant().Trim();
+        var user = await _users.GetByEmailAsync(normalizedEmail)
+            ?? throw new Exception("No account found with this email address.");
+
+        if (user.IsEmailVerified)
+            throw new Exception("Email is already verified.");
+
+        var (_, expiresAt, verificationLink) = await _verificationTokenService.IssueAsync(user.Id);
+        await _brevoEmailService.SendVerificationEmailAsync(user.Email, user.Name, verificationLink, expiresAt);
+    }
+
     // ─── HELPERS ─────────────────────────────────────────────────────────────
 
     // Builds the JWT token and returns the response DTO
     private AuthResponseDto BuildAuthResponse(User user)
     {
-        var token = GenerateJwt(user);
+        var token = user.IsEmailVerified ? GenerateJwt(user) : string.Empty;
         return new AuthResponseDto
         {
-            Token = token,
-            Name  = user.Name,
-            Email = user.Email,
-            Role  = user.Role
+            Token           = token,
+            Name            = user.Name,
+            Email           = user.Email,
+            Role            = user.Role,
+            IsEmailVerified = user.IsEmailVerified
         };
     }
 
@@ -125,4 +186,3 @@ public class AuthService : IAuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
-

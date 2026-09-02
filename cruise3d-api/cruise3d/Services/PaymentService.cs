@@ -1,19 +1,22 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using cruise3d.API.Data;
 using cruise3d.API.Models.DTOs.Payment;
-using cruise3d.API.Models.Settings;
 using cruise3d.API.Repositories.Interfaces;
 using cruise3d.API.Services.Interfaces;
 using cruise3d.Models.Entities;
+using cruise3d.Models.Settings;
 using Microsoft.Extensions.Options;
 using Razorpay.Api;
-using System.Text.Json;
-using System.Security.Cryptography;
-using System.Text;
-using cruise3d.API.Data;
+using PaymentEntity = cruise3d.Models.Entities.Payment;
 
+namespace cruise3d.API.Services;
 
-namespace cruise3d.API.Services
-{
 public class PaymentService : IPaymentService
 {
     private readonly ICartRepository _carts;
@@ -92,7 +95,7 @@ public class PaymentService : IPaymentService
             ColorHexSnapshot = i.ProductColor?.ColorHex ?? i.Product?.DefaultColorHex
         }).ToList();
 
-        var intent = new cruise3d.Models.Entities.Payment
+        var intent = new PaymentEntity
         {
             Id = Guid.NewGuid(),
             OrderId = null,
@@ -174,7 +177,7 @@ public class PaymentService : IPaymentService
             // Resolve address: use provided AddressId if present; otherwise use the
             // user's default address. Throw if no address is available.
             Guid resolvedAddressId;
-            cruise3d.Models.Entities.Address address;
+            Address address;
             if (!dto.AddressId.HasValue || dto.AddressId == Guid.Empty)
             {
                 address = await _addresses.GetDefaultByUserIdAsync(userId)
@@ -218,7 +221,6 @@ public class PaymentService : IPaymentService
             await tx.RollbackAsync();
             throw;
         }
-
     }
 
     private static bool VerifyRazorpaySignature(string orderId, string paymentId, string signature, string secret)
@@ -249,6 +251,4 @@ public class PaymentService : IPaymentService
             return Task.FromResult(false);
         }
     }
-}
-
 }

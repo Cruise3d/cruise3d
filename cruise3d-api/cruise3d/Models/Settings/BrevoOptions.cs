@@ -1,4 +1,4 @@
-namespace cruise3d.API.Models.Settings;
+namespace cruise3d.Models.Settings;
 
 public class BrevoOptions
 {

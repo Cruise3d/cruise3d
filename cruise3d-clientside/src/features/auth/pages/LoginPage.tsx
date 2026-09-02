@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 import { loginSchema, type LoginFormData } from '../../../lib/validators/authSchemas';
 import { useLogin } from '../hooks/useLogin';
+import { resendVerificationEmail } from '../api';
+import { showToast } from '../../../components/ui/toastEvents';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +19,23 @@ export const LoginPage: React.FC = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Unverified account state
+  const [isUnverified, setIsUnverified] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isResending, setIsResending] = useState(false);
+
+  // Cooldown countdown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -47,6 +66,7 @@ export const LoginPage: React.FC = () => {
     }
 
     setSubmitError(null);
+    setIsUnverified(false);
 
     try {
       const response = await login({
@@ -66,10 +86,35 @@ export const LoginPage: React.FC = () => {
       } else {
         navigate('/', { replace: true });
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      if ((error as { isUnverified?: boolean })?.isUnverified) {
+        setIsUnverified(true);
+        setUnverifiedEmail(formData.email);
+        return;
+      }
+
       setSubmitError(
         error instanceof Error ? error.message : 'Sign in failed. Please try again.'
       );
+    }
+  };
+
+  const handleResend = async () => {
+    if (resendCooldown > 0 || isResending || !unverifiedEmail) return;
+
+    setIsResending(true);
+    try {
+      await resendVerificationEmail(unverifiedEmail);
+      setResendCooldown(60);
+      showToast('Verification email sent! Please check your inbox.', 'success');
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unable to resend verification email right now.';
+      showToast(message, 'error');
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -90,6 +135,37 @@ export const LoginPage: React.FC = () => {
             {submitError && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {submitError}
+              </div>
+            )}
+
+            {isUnverified && (
+              <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 space-y-3">
+                <div className="flex items-start gap-2.5">
+                  <span className="material-symbols-outlined text-amber-600 text-xl shrink-0 mt-0.5">
+                    mark_email_unread
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold">Email Verification Required</p>
+                    <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                      Your email address (<strong>{unverifiedEmail}</strong>) is not verified yet. Please check your inbox for the verification link.
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleResend}
+                  disabled={resendCooldown > 0 || isResending}
+                  isLoading={isResending}
+                  className="w-full text-xs"
+                  icon="send"
+                >
+                  {resendCooldown > 0
+                    ? `Resend Email in ${resendCooldown}s`
+                    : 'Resend Verification Email'}
+                </Button>
               </div>
             )}
 
@@ -188,3 +264,4 @@ export const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
+

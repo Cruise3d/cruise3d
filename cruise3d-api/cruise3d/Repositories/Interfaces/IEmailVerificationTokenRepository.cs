@@ -9,6 +9,6 @@ namespace cruise3d.API.Repositories.Interfaces
         Task<EmailVerificationToken> CreateAsync(EmailVerificationToken token);
         Task UpdateAsync(EmailVerificationToken token);
         Task RevokeActiveByUserIdAsync(Guid userId, DateTime revokedAt);
-        Task<bool> ConsumeAsync(string tokenHash, DateTime consumedAt, DateTime utcNow);
+        Task<Guid?> ValidateAndConsumeAsync(string tokenHash, DateTime consumedAt, CancellationToken cancellationToken = default);
     }
 }

@@ -1,10 +1,14 @@
 using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using cruise3d.API.Data;
 
 #nullable disable
 
 namespace cruise3d.API.Migrations
 {
+    [DbContext(typeof(AppDbContext))]
+    [Migration("20260901000000_AddEmailVerification")]
     public partial class AddEmailVerification : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
