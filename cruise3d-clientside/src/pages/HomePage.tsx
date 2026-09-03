@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getFeaturedProducts } from '../features/products/api';
 import { ProductGrid } from '../features/products/components/ProductGrid';
+import { getCategories } from '../features/categories/api';
+import type { Category } from '../features/categories/types';
 import { Button } from '../components/ui/Button';
 import { theme } from '../styles/theme';
 import type { Product } from '../features/products/types';
@@ -90,6 +92,8 @@ const contactCards: ContactCard[] = [
 export default function HomePage() {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,6 +106,23 @@ export default function HomePage() {
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    getCategories()
+      .then((items) => {
+        if (!cancelled) setCategories(items);
+      })
+      .catch(() => {
+        if (!cancelled) setCategories([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingCategories(false);
       });
     return () => {
       cancelled = true;
@@ -214,6 +235,103 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Category Showcase Section */}
+      <section
+        className="border-b py-20"
+        style={{
+          backgroundColor: colors.background.page,
+          borderColor: colors.border.DEFAULT,
+        }}
+      >
+        <div className="mx-auto max-w-[1280px] space-y-10 px-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p
+                className="text-xs font-semibold uppercase tracking-[0.25em]"
+                style={{ color: colors.primary.DEFAULT }}
+              >
+                Find your next favorite
+              </p>
+              <h2
+                className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl"
+                style={{ color: colors.text.primary }}
+              >
+                Explore categories
+              </h2>
+            </div>
+            <Link
+              to="/categories"
+              className="inline-flex items-center gap-1 text-sm font-semibold transition"
+              style={{ color: colors.text.secondary }}
+              onMouseEnter={(event) => {
+                event.currentTarget.style.color = colors.text.primary;
+              }}
+              onMouseLeave={(event) => {
+                event.currentTarget.style.color = colors.text.secondary;
+              }}
+            >
+              View all categories
+              <span className="material-symbols-outlined text-base">arrow_forward</span>
+            </Link>
+          </div>
+
+          {isLoadingCategories ? (
+            <p className="text-center text-sm" style={{ color: colors.text.secondary }}>
+              Loading categories…
+            </p>
+          ) : categories.length === 0 ? (
+            <p className="text-center text-sm" style={{ color: colors.text.secondary }}>
+              Categories will appear here once added from the admin page.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+              {categories.map((category) => (
+                <Link
+                  key={category.id}
+                  to={`/products?categoryId=${category.id}`}
+                  className="group relative aspect-[4/5] overflow-hidden rounded-2xl border transition-transform duration-300 hover:-translate-y-1"
+                  style={{
+                    backgroundColor: colors.surface.container,
+                    borderColor: colors.border.DEFAULT,
+                    boxShadow: shadows.DEFAULT,
+                  }}
+                >
+                  {category.iconUrl ? (
+                    <img
+                      src={category.iconUrl}
+                      alt={category.name}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div
+                      className="flex h-full w-full items-center justify-center"
+                      style={{ color: colors.text.tertiary }}
+                    >
+                      <span className="material-symbols-outlined text-5xl">category</span>
+                    </div>
+                  )}
+                  <div
+                    className="absolute inset-x-0 bottom-0 p-4 pt-12"
+                    style={{
+                      background: 'linear-gradient(transparent, rgba(0, 0, 0, 0.82))',
+                    }}
+                  >
+                    <h3 className="text-lg font-bold text-white sm:text-xl">
+                      {category.name}
+                    </h3>
+                    <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/80">
+                      Shop now
+                      <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

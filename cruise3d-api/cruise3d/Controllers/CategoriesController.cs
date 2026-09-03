@@ -25,6 +25,15 @@ public class CategoriesController : ControllerBase
         return Ok(ApiResponse<object>.Ok(result));
     }
 
+    // GET api/categories/with-products
+    // Public — category catalog grouped with active products
+    [HttpGet("with-products")]
+    public async Task<IActionResult> GetAllWithProducts()
+    {
+        var result = await _categories.GetAllWithProductsAsync();
+        return Ok(ApiResponse<object>.Ok(result));
+    }
+
     // GET api/categories/{id}
     // Public
     [HttpGet("{id}")]

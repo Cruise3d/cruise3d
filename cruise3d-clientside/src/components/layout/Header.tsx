@@ -8,6 +8,7 @@ import { theme } from '../../styles/theme';
 const navItems = [
   { label: 'Home', to: '/' },
   { label: 'Product', to: '/products' },
+  { label: 'Categories', to: '/categories' },
   { label: 'About Us', to: '/about' },
   { label: 'Contact', to: '/contact' },
 ];

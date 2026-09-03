@@ -5,6 +5,7 @@ namespace cruise3d.API.Repositories.Interfaces
     public interface ICategoryRepository
     {
         Task<IEnumerable<Category>> GetAllAsync();
+        Task<IEnumerable<Category>> GetAllWithActiveProductsAsync();
         Task<Category?> GetByIdAsync(Guid id);
         Task<Category?> GetBySlugAsync(string slug);
         Task<Category> CreateAsync(Category category);

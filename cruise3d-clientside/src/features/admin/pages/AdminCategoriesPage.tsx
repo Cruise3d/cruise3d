@@ -128,7 +128,11 @@ export default function AdminCategoriesPage() {
                   className="flex items-start justify-between px-4 py-4"
                   style={{ borderColor: colors.border.DEFAULT }}
                 >
-                  <div>
+                  <div className="flex items-center gap-3">
+                    {category.iconUrl && (
+                      <img src={category.iconUrl} alt="" className="h-12 w-12 rounded-xl object-cover" />
+                    )}
+                    <div>
                     <div 
                       className="font-medium"
                       style={{ color: colors.text.primary }}
@@ -141,6 +145,7 @@ export default function AdminCategoriesPage() {
                     >
                       /{category.slug}
                     </div>
+                  </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <div 

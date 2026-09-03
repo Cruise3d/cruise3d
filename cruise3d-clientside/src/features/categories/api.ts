@@ -1,6 +1,6 @@
 import axiosClient from '@/api/axiosClient';
 
-import type { Category } from './types';
+import type { Category, CategoryWithProducts } from './types';
 
 export interface CategoryUpsertPayload {
   name: string;
@@ -10,6 +10,10 @@ export interface CategoryUpsertPayload {
 
 export async function getCategories() {
   return axiosClient.get<Category[]>('/categories');
+}
+
+export async function getCategoriesWithProducts() {
+  return axiosClient.get<CategoryWithProducts[]>('/categories/with-products');
 }
 
 export async function createCategory(payload: CategoryUpsertPayload) {

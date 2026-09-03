@@ -4,6 +4,7 @@ import HomePage from '../../pages/HomePage'
 import UIDemo from '../../pages/UIDemo'
 import ProductListPage from '../../features/products/pages/ProductListPage'
 import ProductDetailPage from '../../features/products/pages/ProductDetailPage'
+import CategoryCatalogPage from '../../features/categories/pages/CategoryCatalogPage'
 import CartPage from '../../features/cart/pages/CartPage'
 import CheckoutPage from '../../features/orders/pages/CheckoutPage'
 import MyOrdersPage from '../../features/orders/pages/MyOrdersPage'
@@ -62,6 +63,7 @@ export default function AppRouter() {
           <Route path="ui-demo" element={<UIDemo />} />
           <Route path="products" element={<ProductListPage />} />
           <Route path="products/:productId" element={<ProductDetailPage />} />
+          <Route path="categories" element={<CategoryCatalogPage />} />
           <Route path="cart" element={<CartPage />} />
           <Route
             path="checkout"

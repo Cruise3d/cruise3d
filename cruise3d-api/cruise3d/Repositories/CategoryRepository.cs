@@ -23,6 +23,18 @@ namespace cruise3d.API.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Category>> GetAllWithActiveProductsAsync()
+        {
+            return await _db.Categories
+                .Include(c => c.Products.Where(p => p.IsActive))
+                    .ThenInclude(p => p.Images.Where(i => i.IsPrimary))
+                .Include(c => c.Products.Where(p => p.IsActive))
+                    .ThenInclude(p => p.Reviews)
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.Name)
+                .ToListAsync();
+        }
+
         public async Task<Category?> GetByIdAsync(Guid id)
         {
             return await _db.Categories
