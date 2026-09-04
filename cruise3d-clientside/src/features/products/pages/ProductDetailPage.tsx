@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 import { getProductById, getProducts } from '../api';
@@ -55,7 +55,7 @@ export default function ProductDetailPage() {
 
   // Reviews
   const reviewsApi = useProductReviews(productId);
-  const { reviews: fetchedReviews, isLoading: reviewsLoading, refetch: reviewsRefetch } = reviewsApi;
+  const { isLoading: reviewsLoading, refetch: reviewsRefetch } = reviewsApi;
 
   useEffect(() => {
     if (!productId) {
@@ -91,22 +91,25 @@ export default function ProductDetailPage() {
   // Use a "loaded once" guard so we don't retrigger fetches repeatedly and
   // cause visual blinking. We also avoid refetching if reviews are already present.
   const [reviewsLoadedOnce, setReviewsLoadedOnce] = useState(false);
+  const reviewsFetchAttempted = useRef(false);
+  const reviewProductId = useRef(productId);
 
   // Reset the "loaded once" flag when the product changes so we attempt to
   // fetch reviews for the new product when its Reviews tab is opened.
   useEffect(() => {
+    if (reviewProductId.current === productId) return;
+    reviewProductId.current = productId;
+    reviewsFetchAttempted.current = false;
     setReviewsLoadedOnce(false);
   }, [productId]);
 
   useEffect(() => {
     if (activeTab !== 'reviews') return;
     if (reviewsLoadedOnce) return; // already loaded successfully
-    if (fetchedReviews.length > 0) {
-      setReviewsLoadedOnce(true);
-      return;
-    }
+    if (reviewsFetchAttempted.current) return; // already fetched or currently fetching
     if (reviewsLoading) return; // already fetching
 
+    reviewsFetchAttempted.current = true;
     let mounted = true;
     (async () => {
       try {
@@ -120,7 +123,7 @@ export default function ProductDetailPage() {
     return () => {
       mounted = false;
     };
-  }, [activeTab, fetchedReviews.length, reviewsLoading, reviewsRefetch, reviewsLoadedOnce]);
+  }, [activeTab, reviewsLoading, reviewsRefetch, reviewsLoadedOnce]);
 
   if (isLoading) {
     return (
