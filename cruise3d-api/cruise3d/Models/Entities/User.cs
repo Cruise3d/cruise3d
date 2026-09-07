@@ -23,5 +23,6 @@ namespace cruise3d.Models.Entities
         public ICollection<Cart> Carts { get; set; } = new List<Cart>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public ICollection<EmailVerificationToken> EmailVerificationTokens { get; set; } = new List<EmailVerificationToken>();
+        public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
     }
 }

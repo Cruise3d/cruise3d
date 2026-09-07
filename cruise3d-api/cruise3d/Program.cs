@@ -54,6 +54,7 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IOfferRepository, OfferRepository>();
 builder.Services.AddScoped<IEmailVerificationTokenRepository, EmailVerificationTokenRepository>();
+builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
 // ─── SERVICES ─────────────────────────────────────────────────────────────────
@@ -65,10 +66,12 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IOfferService, OfferService>();
 builder.Services.AddScoped<IEmailVerificationTokenService, EmailVerificationTokenService>();
+builder.Services.AddScoped<IPasswordResetTokenService, PasswordResetTokenService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.Configure<BrevoOptions>(builder.Configuration.GetSection("Brevo"));
 builder.Services.Configure<EmailVerificationOptions>(builder.Configuration.GetSection("EmailVerification"));
+builder.Services.Configure<PasswordResetOptions>(builder.Configuration.GetSection("PasswordReset"));
 builder.Services.AddHttpClient<IBrevoEmailService, BrevoEmailService>(client =>
 {
     client.BaseAddress = new Uri("https://api.brevo.com/v3/");
