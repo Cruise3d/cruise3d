@@ -9,6 +9,7 @@ namespace cruise3d.Models.Entities
         public string City { get; set; } = string.Empty;
         public string State { get; set; } = string.Empty;
         public string Pincode { get; set; } = string.Empty;
+        public string? Phone { get; set; }
         public bool IsDefault { get; set; } = false;
 
         public User User { get; set; } = null!;

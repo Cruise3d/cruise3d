@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../cart/useCartStore';
+import { useAuthStore } from '../../../app/store/authStore';
 import { CheckoutStepper, type CheckoutStep } from '../components/CheckoutStepper';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
-import { createRazorpayOrder, verifyPayment, getMyOrders } from '../api';
-import { createAddress } from '../../profile/api';
-import type { AddressId, CreateAddressRequest } from '../../profile/types';
+import { createRazorpayOrder, verifyPayment, getMyOrders, type VerifyPaymentPayload } from '../api';
+import { createAddress, getAddresses } from '../../profile/api';
+import type { Address, AddressId, CreateAddressRequest } from '../../profile/types';
 import type {
   ShippingAddress,
-  PaymentMethod,
 } from '../types';
 
 const initialShippingAddress: ShippingAddress = {
@@ -68,16 +68,25 @@ const INDIAN_STATES = [
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { items, getSubtotal } = useCartStore();
+  const { user } = useAuthStore();
   const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
 
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('shipping');
   const [completedSteps, setCompletedSteps] = useState<CheckoutStep[]>([]);
 
-  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>(initialShippingAddress);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('credit-card');
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
+    ...initialShippingAddress,
+    email: user?.email || '',
+  });
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
+  const [addressLoadError, setAddressLoadError] = useState('');
+  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState<AddressId>('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [checkoutAddressId, setCheckoutAddressId] = useState<AddressId>('');
-  const [paymentStage, setPaymentStage] = useState<'idle' | 'creating-order' | 'opening-checkout' | 'verifying' | 'failed'>('idle');
+  const [paymentStage, setPaymentStage] = useState<'idle' | 'creating-order' | 'opening-checkout' | 'verifying' | 'verification-pending' | 'failed'>('idle');
+  const [pendingVerification, setPendingVerification] = useState<VerifyPaymentPayload | null>(null);
+  const paymentActionLock = useRef(false);
+  const razorpayOutcome = useRef<'none' | 'success' | 'failed'>('none');
 
   const subtotal = getSubtotal();
   const shipping = subtotal > 150 || subtotal === 0 ? 0 : 20.0;
@@ -85,6 +94,37 @@ export const CheckoutPage: React.FC = () => {
   const total = subtotal + shipping + tax;
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    getAddresses()
+      .then((addresses) => {
+        if (cancelled) return;
+        setSavedAddresses(addresses);
+        const preferred = addresses.find((address) => address.isDefault) || addresses[0];
+        if (preferred) {
+          setSelectedSavedAddressId(preferred.id);
+          setShippingAddress((current) => ({
+            ...current,
+            fullName: preferred.fullName,
+            addressLine1: preferred.addressLine,
+            addressLine2: '',
+            city: preferred.city,
+            state: preferred.state,
+            zipCode: preferred.pincode,
+            phone: preferred.phone || user?.phone || '',
+            country: 'India',
+          }));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setAddressLoadError('Saved addresses could not be loaded.');
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingAddresses(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const buildCreateAddressPayload = (
     address: ShippingAddress
@@ -96,29 +136,29 @@ export const CheckoutPage: React.FC = () => {
     city: address.city.trim(),
     state: address.state.trim(),
     pincode: address.zipCode.trim(),
+    phone: address.phone.trim(),
   });
 
-  const getErrorMessage = (error: unknown, fallback: string) => {
-    if (typeof error === 'object' && error !== null) {
-      const typedError = error as {
-        message?: string;
-        response?: {
-          data?: {
-            message?: string;
-            error?: string;
-          };
-        };
-      };
+  const selectSavedAddress = (address: Address) => {
+    setSelectedSavedAddressId(address.id);
+    setShippingAddress((current) => ({
+      ...current,
+      fullName: address.fullName,
+      addressLine1: address.addressLine,
+      addressLine2: '',
+      city: address.city,
+      state: address.state,
+      zipCode: address.pincode,
+      phone: address.phone || user?.phone || '',
+      country: 'India',
+    }));
+    setErrors({});
+  };
 
-      return (
-        typedError.response?.data?.message ||
-        typedError.response?.data?.error ||
-        typedError.message ||
-        fallback
-      );
-    }
-
-    return fallback;
+  const useNewAddress = () => {
+    setSelectedSavedAddressId('');
+    setShippingAddress((current) => ({ ...initialShippingAddress, email: current.email, phone: user?.phone || '' }));
+    setErrors({});
   };
 
   const validateShippingAddress = (): boolean => {
@@ -149,7 +189,11 @@ export const CheckoutPage: React.FC = () => {
       setCurrentStep('summary');
     } else if (currentStep === 'summary') {
       addCompletedStep('summary');
-      placeOrder();
+      if (pendingVerification) {
+        retryVerification();
+      } else {
+        placeOrder();
+      }
     }
   };
 
@@ -159,38 +203,83 @@ export const CheckoutPage: React.FC = () => {
     }
   };
 
+  const verifyPaymentAttempt = async (payload: VerifyPaymentPayload) => {
+    setPendingVerification(payload);
+    try {
+      const verificationResult = await verifyPayment(payload);
+
+      setPendingVerification(null);
+      useCartStore.getState().reset();
+      await useCartStore.getState().fetchCart();
+
+      try {
+        await getMyOrders();
+      } catch {
+        // Order confirmation already succeeded; refreshing the list is best effort.
+      }
+
+      const targetOrderId =
+        verificationResult?.orderId ||
+        (verificationResult as unknown as Record<string, string>)?.OrderId ||
+        (verificationResult as unknown as Record<string, string>)?.id;
+
+      navigate(targetOrderId ? `/orders/${targetOrderId}` : '/orders');
+    } catch {
+      // Keep the exact signed payload so retrying verifies this payment intent again.
+      setPendingVerification(payload);
+      setPaymentStage('verification-pending');
+      setErrors((prev) => ({
+        ...prev,
+        submit: 'Payment status is still being confirmed. Please retry verification.',
+      }));
+    }
+  };
+
+  const retryVerification = async () => {
+    if (!pendingVerification || paymentActionLock.current) return;
+
+    paymentActionLock.current = true;
+    setIsProcessing(true);
+    setErrors((prev) => ({ ...prev, submit: '' }));
+    setPaymentStage('verifying');
+    try {
+      await verifyPaymentAttempt(pendingVerification);
+    } finally {
+      setIsProcessing(false);
+      paymentActionLock.current = false;
+    }
+  };
+
   const placeOrder = async () => {
-    // Prevent duplicate submissions
-    if (isProcessing) return;
+    // State updates are asynchronous, so use a synchronous lock for rapid clicks.
+    if (isProcessing || paymentActionLock.current) return;
 
     if (!items || items.length === 0) {
       setErrors((prev) => ({ ...prev, submit: 'Your cart is empty.' }));
       return;
     }
 
+    paymentActionLock.current = true;
+
     setIsProcessing(true);
     setErrors((prev) => ({ ...prev, submit: '' }));
-    setCheckoutAddressId('');
 
     try {
-      const createAddressPayload = buildCreateAddressPayload(shippingAddress);
-
       setPaymentStage('creating-order');
-      const createdAddress = await createAddress(createAddressPayload);
-
-      if (!createdAddress?.id) {
-        throw new Error('Address creation failed. Missing address id from backend.');
+      let currentAddressId = selectedSavedAddressId;
+      if (!currentAddressId) {
+        const createAddressPayload: CreateAddressRequest = {
+          ...buildCreateAddressPayload(shippingAddress),
+          isDefault: savedAddresses.length === 0,
+        };
+        const createdAddress = await createAddress(createAddressPayload);
+        if (!createdAddress?.id) {
+          throw new Error('Address creation failed. Missing address id from backend.');
+        }
+        currentAddressId = createdAddress.id;
       }
 
-      setCheckoutAddressId(createdAddress.id);
-      const currentAddressId = createdAddress.id;
-      const persistedAddressId = checkoutAddressId;
-
-      if (persistedAddressId && persistedAddressId !== currentAddressId) {
-        throw new Error('Checkout address id mismatch. Please retry checkout.');
-      }
-
-      // 1) Create Razorpay order on backend for every payment method
+      // Create the server-side Razorpay order before opening checkout.
       const razorResp = await createRazorpayOrder({ addressId: currentAddressId });
       setPaymentStage('opening-checkout');
 
@@ -212,6 +301,7 @@ export const CheckoutPage: React.FC = () => {
       });
 
       // Prepare options
+      razorpayOutcome.current = 'none';
       const options: any = {
         key,
         amount,
@@ -221,6 +311,7 @@ export const CheckoutPage: React.FC = () => {
         description: 'Order Checkout',
         handler: async (response: any) => {
           // Called when payment succeeds in the Razorpay popup
+          razorpayOutcome.current = 'success';
           setIsProcessing(true);
           setPaymentStage('verifying');
           try {
@@ -236,75 +327,54 @@ export const CheckoutPage: React.FC = () => {
               throw new Error('Address id is missing. Payment verification was stopped.');
             }
 
-            const verifyPayload = {
+            const verifyPayload: VerifyPaymentPayload = {
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
               addressId: currentAddressId,
             };
 
-            // 3) Verify payment with backend
-            const verificationResult = await verifyPayment(verifyPayload);
+            await verifyPaymentAttempt(verifyPayload);
 
-            // Backend verification succeeded. Refresh cart and orders, navigate to success.
-            // Clear local cart state immediately
-            useCartStore.getState().reset();
-            // Refresh cart from backend to reflect server-side state
-            await useCartStore.getState().fetchCart();
-
-            // Trigger a refresh of orders (best-effort)
-            try {
-              await getMyOrders();
-            } catch {}
-
-            // Extract the created order ID from the verification response
-            const targetOrderId =
-              verificationResult?.orderId ||
-              (verificationResult as unknown as Record<string, string>)?.OrderId ||
-              (verificationResult as unknown as Record<string, string>)?.id;
-
-            // Navigate to order detail page
-            if (targetOrderId) {
-              navigate(`/orders/${targetOrderId}`);
-            } else {
-              navigate('/orders');
-            }
-
-          } catch (err) {
-            const message = err instanceof Error ? err.message : 'Payment verification failed.';
-            setErrors((prev) => ({ ...prev, submit: message }));
+          } catch {
+            setPendingVerification(null);
+            setErrors((prev) => ({ ...prev, submit: 'Payment could not be verified. Please try again.' }));
             setPaymentStage('failed');
           } finally {
             setIsProcessing(false);
+            paymentActionLock.current = false;
           }
         },
         modal: {
           ondismiss: () => {
             // User closed the checkout popup
+            if (razorpayOutcome.current !== 'none') return;
             setIsProcessing(false);
             setPaymentStage('idle');
-            setErrors((prev) => ({ ...prev, submit: 'Payment window was closed. You can retry.' }));
+            paymentActionLock.current = false;
+            setErrors((prev) => ({ ...prev, submit: 'Payment was cancelled. Your cart and address are safe. You can retry.' }));
           },
         },
       };
 
       // Create instance and attach failure handler
       const rzp = new (window as any).Razorpay(options);
-      rzp.on('payment.failed', (resp: any) => {
-        const msg = resp?.error?.description || 'Payment failed. Please try another method.';
-        setErrors((prev) => ({ ...prev, submit: msg }));
+      rzp.on('payment.failed', () => {
+        razorpayOutcome.current = 'failed';
+        setErrors((prev) => ({ ...prev, submit: 'Payment could not be completed. Your cart and address are safe. Please try again.' }));
         setPaymentStage('failed');
         setIsProcessing(false);
+        paymentActionLock.current = false;
       });
 
       // Open checkout
       rzp.open();
 
-    } catch (error) {
-      const message = getErrorMessage(error, 'Failed to start payment. Please try again.');
-      setErrors((prev) => ({ ...prev, submit: message }));
+    } catch {
+      setErrors((prev) => ({ ...prev, submit: 'Secure payment could not be started. Your cart and address are safe. Please try again.' }));
       setPaymentStage('failed');
       setIsProcessing(false);
+      paymentActionLock.current = false;
     }
   };
 
@@ -513,102 +583,6 @@ export const CheckoutPage: React.FC = () => {
     </div>
   );
 
-  const renderPaymentMethod = () => (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-on-surface">Payment Method</h3>
-      <div className="space-y-3">
-        <label
-          className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-            paymentMethod === 'credit-card'
-              ? 'border-primary bg-primary/5'
-              : 'border-surface-container-highest hover:border-surface-container-high'
-          }`}
-        >
-          <input
-            type="radio"
-            name="paymentMethod"
-            value="credit-card"
-            checked={paymentMethod === 'credit-card'}
-            onChange={() => setPaymentMethod('credit-card')}
-            className="w-4 h-4 text-primary"
-          />
-          <span className="material-symbols-outlined text-2xl text-on-surface-variant">
-            credit_card
-          </span>
-          <div className="flex-1">
-            <span className="font-medium text-on-surface">Credit / Debit Card</span>
-            <p className="text-xs text-on-surface-variant">Visa, Mastercard, Amex</p>
-          </div>
-        </label>
-
-        <label
-          className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-            paymentMethod === 'upi'
-              ? 'border-primary bg-primary/5'
-              : 'border-surface-container-highest hover:border-surface-container-high'
-          }`}
-        >
-          <input
-            type="radio"
-            name="paymentMethod"
-            value="upi"
-            checked={paymentMethod === 'upi'}
-            onChange={() => setPaymentMethod('upi')}
-            className="w-4 h-4 text-primary"
-          />
-          <span className="material-symbols-outlined text-2xl text-on-surface-variant">
-            qr_code
-          </span>
-          <div className="flex-1">
-            <span className="font-medium text-on-surface">UPI</span>
-            <p className="text-xs text-on-surface-variant">Pay with UPI ID</p>
-          </div>
-        </label>
-
-        <label
-          className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-            paymentMethod === 'cod'
-              ? 'border-primary bg-primary/5'
-              : 'border-surface-container-highest hover:border-surface-container-high'
-          }`}
-        >
-          <input
-            type="radio"
-            name="paymentMethod"
-            value="cod"
-            checked={paymentMethod === 'cod'}
-            onChange={() => setPaymentMethod('cod')}
-            className="w-4 h-4 text-primary"
-          />
-          <span className="material-symbols-outlined text-2xl text-on-surface-variant">
-            payments
-          </span>
-          <div className="flex-1">
-            <span className="font-medium text-on-surface">Cash on Delivery</span>
-            <p className="text-xs text-on-surface-variant">Pay when you receive</p>
-          </div>
-        </label>
-      </div>
-
-      {paymentMethod === 'credit-card' && (
-        <div className="p-4 rounded-xl bg-surface-container-low border border-surface-container-highest space-y-4">
-          <Input label="Card Number" placeholder="1234 5678 9012 3456" icon="credit_card" />
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Expiry Date" placeholder="MM/YY" />
-            <Input label="CVV" placeholder="123" type="password" />
-          </div>
-          <Input label="Cardholder Name" placeholder="John Doe" icon="person" />
-        </div>
-      )}
-
-      {paymentMethod === 'upi' && (
-        <div className="p-4 rounded-xl bg-surface-container-low border border-surface-container-highest">
-          <Input label="UPI ID" placeholder="yourname@upi" icon="qr_code" />
-        </div>
-      )}
-    </div>
-  );
-
   const paymentFlowSteps = [
     {
       key: 'creating-order',
@@ -640,6 +614,7 @@ export const CheckoutPage: React.FC = () => {
     'creating-order': 'Creating order',
     'opening-checkout': 'Opening checkout',
     verifying: 'Verifying payment',
+    'verification-pending': 'Verification pending',
     failed: 'Payment needs retry',
   }[paymentStage];
 
@@ -648,6 +623,7 @@ export const CheckoutPage: React.FC = () => {
     'creating-order': 'Sending checkout data to the backend right now.',
     'opening-checkout': 'Waiting for the Razorpay popup to appear.',
     verifying: 'Payment succeeded in the popup and the backend is confirming it.',
+    'verification-pending': 'Payment may have succeeded, but confirmation was interrupted. Retry verification to safely continue.',
     failed: 'The last payment attempt did not complete. Check the message above and try again.',
   }[paymentStage];
 
@@ -678,6 +654,34 @@ export const CheckoutPage: React.FC = () => {
             {/* Shipping Address */}
             {currentStep === 'shipping' && (
               <div className="bg-surface-container-low rounded-2xl p-6 border border-surface-container-highest space-y-6">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-lg font-semibold text-on-surface">Saved Addresses</h3>
+                    <Button variant="outline" size="sm" onClick={useNewAddress}>Use a new address</Button>
+                  </div>
+                  {addressLoadError && <p className="text-sm text-error">{addressLoadError}</p>}
+                  {isLoadingAddresses ? (
+                    <p className="text-sm text-on-surface-variant">Loading saved addresses...</p>
+                  ) : savedAddresses.length > 0 ? (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {savedAddresses.map((address) => (
+                        <label key={address.id} className={`block rounded-xl border-2 p-4 cursor-pointer ${selectedSavedAddressId === address.id ? 'border-primary bg-primary/5' : 'border-surface-container-highest'}`}>
+                          <input type="radio" name="savedAddress" checked={selectedSavedAddressId === address.id} onChange={() => selectSavedAddress(address)} className="sr-only" />
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="font-semibold text-on-surface">{address.fullName}</p>
+                              <p className="text-sm text-on-surface-variant mt-1">{address.addressLine}</p>
+                              <p className="text-sm text-on-surface-variant">{address.city}, {address.state} {address.pincode}</p>
+                            </div>
+                            {address.isDefault && <span className="text-xs font-semibold text-primary">Default</span>}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-on-surface-variant">No saved addresses yet. Enter one below to save it.</p>
+                  )}
+                </div>
                 {renderAddressForm(shippingAddress, 'Shipping Address')}
               </div>
             )}
@@ -749,7 +753,17 @@ export const CheckoutPage: React.FC = () => {
                   </div>
                 </div>
 
-                {renderPaymentMethod()}
+                <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-2xl text-primary">lock</span>
+                    <div>
+                      <h3 className="text-lg font-semibold text-on-surface">Payment</h3>
+                      <p className="text-sm text-on-surface-variant">
+                        Secure payment powered by Razorpay
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -786,7 +800,7 @@ export const CheckoutPage: React.FC = () => {
               >
                 {currentStep === 'summary' ? (
                   <>
-                    Pay with Razorpay
+                    {pendingVerification ? 'Retry verification' : 'Pay with Razorpay'}
                     <span className="material-symbols-outlined">arrow_forward</span>
                   </>
                 ) : (

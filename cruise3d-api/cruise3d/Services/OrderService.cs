@@ -10,6 +10,7 @@ namespace cruise3d.API.Services;
 public class OrderService : IOrderService
 {
     private readonly IOrderRepository  _orders;
+    private readonly IAddressRepository _addresses;
     private readonly ICartRepository   _carts;
     private readonly IProductRepository _products;
     private readonly INotificationService _notifications;
@@ -19,12 +20,14 @@ public class OrderService : IOrderService
 
     public OrderService(
         IOrderRepository orders,
+        IAddressRepository addresses,
         ICartRepository carts,
         IProductRepository products,
         INotificationService notifications,
         ILogger<OrderService> logger)
     {
         _orders        = orders;
+        _addresses     = addresses;
         _carts         = carts;
         _products      = products;
         _notifications = notifications;
@@ -39,6 +42,12 @@ public class OrderService : IOrderService
         var cartItems = await _carts.GetByUserIdAsync(customerId);
         if (!cartItems.Any())
             throw new Exception("Your cart is empty.");
+
+        var address = await _addresses.GetByIdAsync(dto.AddressId)
+            ?? throw new Exception("Address not found.");
+        if (address.UserId != customerId)
+            throw new Exception("Address does not belong to the user.");
+        var shippingPhone = RequireShippingPhone(address.Phone);
 
         // 2. Validate stock for every item
         foreach (var item in cartItems)
@@ -61,6 +70,7 @@ public class OrderService : IOrderService
             Id              = Guid.NewGuid(),
             CustomerId      = customerId,
             AddressId       = dto.AddressId,
+            ShippingPhone   = shippingPhone,
             Subtotal        = subtotal,
             ShippingCharge  = ShippingCharge,
             TotalAmount     = total,
@@ -239,6 +249,8 @@ public class OrderService : IOrderService
         Status         = o.Status,
         PaymentStatus  = o.PaymentStatus,
         PaymentId      = o.PaymentId,
+        ShippingPhone  = o.ShippingPhone,
+        CustomerEmail   = o.Customer?.Email,
         DtdcTrackingId = o.DtdcTrackingId,
         PlacedAt       = o.PlacedAt,
         Address = new OrderAddressDto
@@ -247,7 +259,8 @@ public class OrderService : IOrderService
             AddressLine = o.Address?.AddressLine ?? string.Empty,
             City        = o.Address?.City        ?? string.Empty,
             State       = o.Address?.State       ?? string.Empty,
-            Pincode     = o.Address?.Pincode     ?? string.Empty
+            Pincode     = o.Address?.Pincode     ?? string.Empty,
+            Phone       = o.ShippingPhone
         },
         Items = o.Items.Select(i => new OrderItemResponseDto
         {
@@ -262,6 +275,14 @@ public class OrderService : IOrderService
             ColorHex        = i.ColorHexSnapshot
         }).ToList()
     };
+
+    private static string RequireShippingPhone(string? phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone))
+            throw new Exception("A valid phone number is required for shipping.");
+
+        return phone.Trim();
+    }
 
     private static string? ResolveOrderItemImageUrl(OrderItem item)
     {
@@ -295,6 +316,12 @@ public class OrderService : IOrderService
         if (paymentIntent.UserId != customerId) throw new Exception("Unauthorized.");
         if (string.IsNullOrEmpty(paymentIntent.CartSnapshot)) throw new Exception("Payment intent has no cart snapshot.");
 
+        var address = await _addresses.GetByIdAsync(addressId)
+            ?? throw new Exception("Address not found.");
+        if (address.UserId != customerId)
+            throw new Exception("Address does not belong to the user.");
+        var shippingPhone = RequireShippingPhone(address.Phone);
+
         // Deserialize snapshot
         var snapshot = JsonSerializer.Deserialize<List<CartSnapshotItem>>(paymentIntent.CartSnapshot)
             ?? throw new Exception("Invalid cart snapshot.");
@@ -319,6 +346,7 @@ public class OrderService : IOrderService
             Id = Guid.NewGuid(),
             CustomerId = customerId,
             AddressId = addressId,
+            ShippingPhone = shippingPhone,
             Subtotal = subtotal,
             ShippingCharge = ShippingCharge,
             TotalAmount = total,

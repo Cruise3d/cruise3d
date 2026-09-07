@@ -9,6 +9,7 @@ namespace cruise3d.API.Repositories.Interfaces
         Task<Address?> GetDefaultByUserIdAsync(Guid userId);
         Task<Address> CreateAsync(Address address);
         Task UpdateAsync(Address address);
+        Task SetDefaultAsync(Address address);
         Task DeleteAsync(Guid id);
     }
 }

@@ -43,9 +43,19 @@ public class AddressConfiguration : IEntityTypeConfiguration<Address>
               .HasMaxLength(10)
               .HasColumnName("pincode");
 
+        // Nullable for legacy rows; new-address DTOs require a valid phone.
+        entity.Property(a => a.Phone)
+              .HasMaxLength(20)
+              .HasColumnName("phone");
+
         entity.Property(a => a.IsDefault)
               .HasDefaultValue(false)
               .HasColumnName("is_default");
+
+        entity.HasIndex(a => a.UserId)
+              .IsUnique()
+              .HasDatabaseName("ix_addresses_one_default_per_user")
+              .HasFilter("is_default = TRUE");
 
         // one User → many Addresses
         // if user deleted → addresses deleted too

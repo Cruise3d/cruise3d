@@ -39,6 +39,9 @@ namespace cruise3d.API.Repositories
 
         public async Task<Address> CreateAsync(Address address)
         {
+            if (!await _db.Addresses.AnyAsync(a => a.UserId == address.UserId))
+                address.IsDefault = true;
+
             // If this is set as default, remove default from other addresses
             if (address.IsDefault)
             {
@@ -47,6 +50,8 @@ namespace cruise3d.API.Repositories
                     .ToListAsync();
                 foreach (var a in otherDefaults)
                     a.IsDefault = false;
+
+                await _db.SaveChangesAsync();
             }
 
             _db.Addresses.Add(address);
@@ -64,9 +69,29 @@ namespace cruise3d.API.Repositories
                     .ToListAsync();
                 foreach (var a in otherDefaults)
                     a.IsDefault = false;
+
+                address.IsDefault = false;
+                await _db.SaveChangesAsync();
+                address.IsDefault = true;
             }
 
             _db.Addresses.Update(address);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task SetDefaultAsync(Address address)
+        {
+            var addresses = await _db.Addresses
+                .Where(a => a.UserId == address.UserId)
+                .ToListAsync();
+
+            foreach (var item in addresses)
+                item.IsDefault = false;
+
+            await _db.SaveChangesAsync();
+
+            address.IsDefault = true;
+
             await _db.SaveChangesAsync();
         }
 

@@ -12,6 +12,8 @@ public class OrderResponseDto
     public string Status { get; set; } = string.Empty;
     public string PaymentStatus { get; set; } = string.Empty;
     public string? PaymentId { get; set; }
+    public string? ShippingPhone { get; set; }
+    public string? CustomerEmail { get; set; }
     public string? DtdcTrackingId { get; set; }
     public DateTime PlacedAt { get; set; }
 
@@ -29,6 +31,7 @@ public class OrderAddressDto
     public string City { get; set; } = string.Empty;
     public string State { get; set; } = string.Empty;
     public string Pincode { get; set; } = string.Empty;
+    public string? Phone { get; set; }
 }
 
 public class OrderItemResponseDto

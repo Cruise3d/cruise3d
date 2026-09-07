@@ -8,6 +8,7 @@ namespace cruise3d.Models.Entities
         public Guid Id { get; set; }
         public Guid CustomerId { get; set; }
         public Guid AddressId { get; set; }
+        public string? ShippingPhone { get; set; }
         public decimal Subtotal { get; set; }
         public decimal ShippingCharge { get; set; }
         public decimal TotalAmount { get; set; }

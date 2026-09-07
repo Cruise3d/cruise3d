@@ -168,12 +168,16 @@ export default function AdminOrdersPage() {
   }
 
   const selectedAddress = selectedOrder?.address
+  const selectedPhone = selectedOrder?.shippingPhone || selectedAddress?.phone || ''
+  const selectedEmail = selectedOrder?.customerEmail || ''
   const selectedTrackingId = selectedOrder?.dtdcTrackingId?.trim() || ''
   const selectedAddressLines = selectedAddress
     ? [
         selectedAddress.fullName,
         selectedAddress.addressLine,
         `${selectedAddress.city}, ${selectedAddress.state} ${selectedAddress.pincode}`.trim(),
+        selectedPhone && `Phone: ${selectedPhone}`,
+        selectedEmail && `Email: ${selectedEmail}`,
       ].filter(Boolean)
     : []
 
@@ -482,6 +486,8 @@ export default function AdminOrdersPage() {
                           {selectedAddress.city && selectedAddress.state ? ', ' : ''}
                           {selectedAddress.state} {selectedAddress.pincode}
                         </p>
+                        {selectedPhone && <p>Phone: {selectedPhone}</p>}
+                        {selectedEmail && <p>Email: {selectedEmail}</p>}
                       </address>
                     ) : (
                       <p className="text-sm" style={{ color: colors.text.secondary }}>

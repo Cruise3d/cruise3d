@@ -4,6 +4,14 @@ import { useAuthStore } from '../../../app/store/authStore';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
 import { getMyOrders } from '../../orders/api';
+import {
+  createAddress,
+  deleteAddress,
+  getAddresses,
+  setDefaultAddress,
+  updateAddress,
+} from '../api';
+import type { Address, CreateAddressRequest } from '../types';
 import type { Order } from '../../orders/types';
 
 type ProfileTab = 'account' | 'orders' | 'addresses' | 'settings';
@@ -16,6 +24,15 @@ export const UserProfilePage: React.FC = () => {
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [addressesLoading, setAddressesLoading] = useState(false);
+  const [addressError, setAddressError] = useState('');
+  const [addressForm, setAddressForm] = useState<CreateAddressRequest>({
+    fullName: '', addressLine: '', city: '', state: '', pincode: '', phone: '', isDefault: false,
+  });
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressSaving, setAddressSaving] = useState(false);
 
   useEffect(() => {
     if (activeTab !== 'orders') return;
@@ -35,6 +52,63 @@ export const UserProfilePage: React.FC = () => {
       cancelled = true;
     };
   }, [activeTab]);
+
+  const loadAddresses = async () => {
+    setAddressesLoading(true);
+    setAddressError('');
+    try {
+      setAddresses(await getAddresses());
+    } catch {
+      setAddressError('Unable to load your saved addresses.');
+    } finally {
+      setAddressesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'addresses') void loadAddresses();
+  }, [activeTab]);
+
+  const openAddressForm = (address?: Address) => {
+    setEditingAddressId(address?.id ?? null);
+    setAddressForm(address
+      ? { fullName: address.fullName, addressLine: address.addressLine, city: address.city, state: address.state, pincode: address.pincode, phone: address.phone || '', isDefault: address.isDefault }
+      : { fullName: '', addressLine: '', city: '', state: '', pincode: '', phone: user?.phone || '', isDefault: addresses.length === 0 });
+    setShowAddressForm(true);
+  };
+
+  const saveAddress = async () => {
+    setAddressSaving(true);
+    setAddressError('');
+    try {
+      if (editingAddressId) await updateAddress(editingAddressId, addressForm);
+      else await createAddress(addressForm);
+      setShowAddressForm(false);
+      await loadAddresses();
+    } catch {
+      setAddressError('Unable to save this address.');
+    } finally {
+      setAddressSaving(false);
+    }
+  };
+
+  const makeDefault = async (id: string) => {
+    try {
+      await setDefaultAddress(id);
+      await loadAddresses();
+    } catch {
+      setAddressError('Unable to update the default address.');
+    }
+  };
+
+  const removeAddress = async (id: string) => {
+    try {
+      await deleteAddress(id);
+      await loadAddresses();
+    } catch {
+      setAddressError('This address may already be attached to an order.');
+    }
+  };
 
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
@@ -335,34 +409,63 @@ export const UserProfilePage: React.FC = () => {
               <div className="bg-surface-container-low rounded-2xl border border-surface-container-highest p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-on-surface">Saved Addresses</h2>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={() => openAddressForm()}>
                     <span className="material-symbols-outlined">add</span>
                     Add Address
                   </Button>
                 </div>
-
-                <div className="bg-surface-container rounded-xl p-6 border border-surface-container-highest">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold text-on-surface">John Doe</p>
-                      <p className="text-on-surface-variant mt-1">123 Main Street</p>
-                      <p className="text-on-surface-variant">San Francisco, CA 94102</p>
-                      <p className="text-on-surface-variant">United States</p>
-                      <p className="text-on-surface-variant mt-1">+1 (555) 123-4567</p>
+                {addressError && <p className="mb-4 text-sm text-error">{addressError}</p>}
+                {showAddressForm && (
+                  <div className="mb-6 rounded-xl border border-surface-container-highest bg-surface-container p-5 space-y-4">
+                    <h3 className="font-semibold text-on-surface">{editingAddressId ? 'Edit Address' : 'New Address'}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {(['fullName', 'addressLine', 'city', 'state', 'pincode', 'phone'] as const).map((field) => (
+                        <Input
+                          key={field}
+                          label={{ fullName: 'Full Name', addressLine: 'Address', city: 'City', state: 'State', pincode: 'PIN Code', phone: 'Phone' }[field]}
+                          type={field === 'phone' ? 'tel' : 'text'}
+                          value={addressForm[field]}
+                          onChange={(event) => setAddressForm((current) => ({ ...current, [field]: event.target.value }))}
+                          className={field === 'addressLine' ? 'md:col-span-2' : undefined}
+                        />
+                      ))}
                     </div>
-                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary">
-                      Default
-                    </span>
+                    <label className="flex items-center gap-2 text-sm text-on-surface">
+                      <input type="checkbox" checked={addressForm.isDefault} onChange={(event) => setAddressForm((current) => ({ ...current, isDefault: event.target.checked }))} />
+                      Make this my default address
+                    </label>
+                    <div className="flex gap-3">
+                      <Button variant="primary" onClick={() => void saveAddress()} isLoading={addressSaving}>Save</Button>
+                      <Button variant="outline" onClick={() => setShowAddressForm(false)}>Cancel</Button>
+                    </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-surface-container-highest flex gap-3">
-                    <Button variant="ghost" size="sm">
-                      Edit
-                    </Button>
-                    <Button variant="ghost" size="sm" className="text-error hover:bg-error-container">
-                      Delete
-                    </Button>
+                )}
+                {addressesLoading ? (
+                  <p className="py-8 text-center text-on-surface-variant">Loading addresses...</p>
+                ) : addresses.length === 0 ? (
+                  <p className="py-8 text-center text-on-surface-variant">No saved addresses yet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {addresses.map((address) => (
+                      <div key={address.id} className="bg-surface-container rounded-xl p-6 border border-surface-container-highest">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="font-semibold text-on-surface">{address.fullName}</p>
+                            <p className="text-on-surface-variant mt-1">{address.addressLine}</p>
+                            <p className="text-on-surface-variant">{address.city}, {address.state} {address.pincode}</p>
+                            {address.phone && <p className="text-on-surface-variant">Phone: {address.phone}</p>}
+                          </div>
+                          {address.isDefault && <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary">Default</span>}
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-surface-container-highest flex flex-wrap gap-3">
+                          <Button variant="ghost" size="sm" onClick={() => openAddressForm(address)}>Edit</Button>
+                          {!address.isDefault && <Button variant="ghost" size="sm" onClick={() => void makeDefault(address.id)}>Set as default</Button>}
+                          <Button variant="ghost" size="sm" className="text-error hover:bg-error-container" onClick={() => void removeAddress(address.id)}>Delete</Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
               </div>
             )}
 

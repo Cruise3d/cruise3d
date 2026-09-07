@@ -27,6 +27,11 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         entity.Property(o => o.TotalAmount)
               .HasPrecision(10, 2);
 
+        // Nullable for historical orders created before shipping phone snapshots existed.
+        entity.Property(o => o.ShippingPhone)
+              .HasMaxLength(20)
+              .HasColumnName("shipping_phone");
+
         entity.Property(o => o.Status)
               .IsRequired()
               .HasMaxLength(20)

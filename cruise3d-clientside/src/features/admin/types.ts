@@ -71,6 +71,7 @@ export interface AdminOrderAddress {
   city: string;
   state: string;
   pincode: string;
+  phone?: string | null;
 }
 
 export interface AdminOrderItem {
@@ -90,6 +91,8 @@ export interface AdminOrder {
   status: 'pending' | 'confirmed' | 'printing' | 'shipped' | 'delivered' | 'cancelled';
   paymentStatus: 'pending' | 'unpaid' | 'paid' | 'failed' | 'refunded';
   paymentId?: string | null;
+  shippingPhone?: string | null;
+  customerEmail?: string | null;
   dtdcTrackingId?: string | null;
   subtotal: number;
   shippingCharge: number;

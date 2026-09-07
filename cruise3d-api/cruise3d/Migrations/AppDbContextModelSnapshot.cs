@@ -53,6 +53,11 @@ namespace cruise3d.API.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_default");
 
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
+
                     b.Property<string>("Pincode")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -74,6 +79,11 @@ namespace cruise3d.API.Migrations
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("i_x_addresses_user_id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("is_default = TRUE")
+                        .HasDatabaseName("ix_addresses_one_default_per_user");
 
                     b.ToTable("addresses", (string)null);
                 });
@@ -400,6 +410,11 @@ namespace cruise3d.API.Migrations
                         .HasColumnType("character varying(20)")
                         .HasDefaultValue("unpaid")
                         .HasColumnName("payment_status");
+
+                    b.Property<string>("ShippingPhone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("shipping_phone");
 
                     b.Property<DateTime>("PlacedAt")
                         .ValueGeneratedOnAdd()

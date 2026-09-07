@@ -132,6 +132,7 @@ export const OrderDetailPage: React.FC = () => {
     const state = address.state || raw.state || '';
     const zip = address.zipCode || raw.zipCode || raw.pincode || '';
     const country = address.country || raw.country || '';
+    const phone = address.phone || raw.phone || '';
 
     return (
       <address className="not-italic">
@@ -144,21 +145,9 @@ export const OrderDetailPage: React.FC = () => {
           </p>
         )}
         {country && <p className="text-on-surface-variant text-sm">{country}</p>}
+        {phone && <p className="text-on-surface-variant text-sm">Phone: {phone}</p>}
       </address>
     );
-  };
-
-  const getPaymentMethodLabel = (method?: string) => {
-    switch (method) {
-      case 'credit-card':
-        return 'Credit / Debit Card';
-      case 'upi':
-        return 'UPI';
-      case 'cod':
-        return 'Cash on Delivery';
-      default:
-        return method || 'Online Payment';
-    }
   };
 
   const dtdcTrackingId = (
@@ -450,7 +439,7 @@ export const OrderDetailPage: React.FC = () => {
                 </span>
                 <h2 className="text-lg font-semibold text-on-surface">Payment Method</h2>
               </div>
-              <p className="text-on-surface">{getPaymentMethodLabel(order.paymentMethod)}</p>
+              <p className="text-on-surface">Razorpay</p>
               <p className="text-sm text-on-surface-variant mt-1">
                 Payment status: <span className="font-semibold text-tertiary">Paid</span>
               </p>

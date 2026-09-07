@@ -30,8 +30,6 @@ export interface ShippingAddress {
   zipCode: string;
 }
 
-export type PaymentMethod = 'credit-card' | 'upi' | 'cod';
-
 export interface OrderItem {
   id: string;
   productId: string;
@@ -49,11 +47,11 @@ export interface Order {
   items: OrderItem[];
   billingAddress: BillingAddress;
   shippingAddress: ShippingAddress;
-  paymentMethod: PaymentMethod;
   subtotal: number;
   shipping: number;
   tax: number;
   total: number;
+  shippingPhone?: string | null;
   createdAt: string;
   updatedAt: string;
   estimatedDelivery?: string;
@@ -74,7 +72,6 @@ export interface CheckoutFormData {
   billingAddress: BillingAddress;
   shippingAddress: ShippingAddress;
   sameAsBilling: boolean;
-  paymentMethod: PaymentMethod;
 }
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {

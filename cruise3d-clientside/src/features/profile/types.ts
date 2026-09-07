@@ -14,6 +14,8 @@ export interface CreateAddressRequest {
   city: string;
   state: string;
   pincode: string;
+  phone: string;
+  isDefault?: boolean;
 }
 
 export interface Address {
@@ -23,6 +25,7 @@ export interface Address {
   city: string;
   state: string;
   pincode: string;
+  phone?: string | null;
   isDefault: boolean;
 }
 

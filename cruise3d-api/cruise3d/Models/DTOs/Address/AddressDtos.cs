@@ -22,6 +22,17 @@ public class CreateAddressDto
     [Required(ErrorMessage = "Pincode is required")]
     [MaxLength(10, ErrorMessage = "Pincode cannot exceed 10 characters")]
     public string Pincode { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Phone is required")]
+    [Phone(ErrorMessage = "Invalid phone number")]
+    [MaxLength(20, ErrorMessage = "Phone cannot exceed 20 characters")]
+    public string Phone { get; set; } = string.Empty;
+
+    public bool IsDefault { get; set; }
+}
+
+public class UpdateAddressDto : CreateAddressDto
+{
 }
 
 public class AddressResponseDto
@@ -32,5 +43,6 @@ public class AddressResponseDto
     public string City { get; set; } = string.Empty;
     public string State { get; set; } = string.Empty;
     public string Pincode { get; set; } = string.Empty;
+    public string? Phone { get; set; }
     public bool IsDefault { get; set; }
 }
