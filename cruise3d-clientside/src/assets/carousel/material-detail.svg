@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Material detail study</title>
+  <desc id="desc">Close-up geometric material samples with soft studio light.</desc>
+  <defs><radialGradient id="bg"><stop stop-color="#536c68"/><stop offset="1" stop-color="#17252e"/></radialGradient><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f3d7a0"/><stop offset="1" stop-color="#b56a4e"/></linearGradient><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d7eee6"/><stop offset="1" stop-color="#4c9e9b"/></linearGradient></defs>
+  <rect width="1600" height="900" fill="url(#bg)"/><ellipse cx="800" cy="520" rx="600" ry="230" fill="#0e1821" opacity=".45"/>
+  <g transform="translate(340 170)"><path d="M0 150 300 0l300 150-300 150Z" fill="url(#a)"/><path d="M0 150v310l300 160V300ZM600 150v310L300 620V300Z" fill="#9d5d52"/><path d="M80 165 300 55l220 110-220 110Z" fill="#f9e2b9" opacity=".45"/></g>
+  <g transform="translate(950 300)"><path d="M0 110 190 0l190 110-190 110Z" fill="url(#b)"/><path d="M0 110v210l190 105V220ZM380 110v210L190 425V220Z" fill="#367b7d"/><path d="M55 120 190 42l135 78-135 78Z" fill="#e6fff4" opacity=".55"/></g>
+  <text x="100" y="790" fill="#e6fff4" font-family="sans-serif" font-size="30" letter-spacing="8">MATERIAL / TACTILITY / DETAIL</text>
+</svg>

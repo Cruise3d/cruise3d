@@ -7,6 +7,29 @@ import type { Category } from '../features/categories/types';
 import { Button } from '../components/ui/Button';
 import { theme } from '../styles/theme';
 import type { Product } from '../features/products/types';
+import printerWorkbench from '../assets/carousel/printer-workbench.svg';
+import kineticForm from '../assets/carousel/kinetic-form.svg';
+import materialDetail from '../assets/carousel/material-detail.svg';
+import referenceHero from '../assets/carousel/ChatGPT Image Sep 4, 2026, 04_02_15 PM.png';
+
+const heroSlides = [
+  {
+    image: printerWorkbench,
+    alt: 'Precision 3D printer producing a layered object',
+  },
+  {
+    image: kineticForm,
+    alt: 'Sculptural computationally designed printed form',
+  },
+  {
+    image: materialDetail,
+    alt: 'Geometric 3D printed material studies',
+  },
+  {
+    image: referenceHero,
+    alt: 'Wide 3D printing studio hero scene',
+  },
+];
 
 const trustBadges = [
   { icon: 'local_shipping', label: 'Free Express Shipping' },
@@ -94,6 +117,18 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [activeHeroSlide, setActiveHeroSlide] = useState(0);
+  const [isHeroPaused, setIsHeroPaused] = useState(false);
+
+  useEffect(() => {
+    if (isHeroPaused) return;
+
+    const timer = window.setInterval(() => {
+      setActiveHeroSlide((current) => (current + 1) % heroSlides.length);
+    }, 5500);
+
+    return () => window.clearInterval(timer);
+  }, [isHeroPaused]);
 
   useEffect(() => {
     let cancelled = false;
@@ -134,71 +169,61 @@ export default function HomePage() {
   return (
     <div className="overflow-hidden" style={{ backgroundColor: colors.background.page }}>
       {/* Hero Section */}
-      <section 
-        className="relative overflow-hidden bg-white pb-20 pt-28 md:pt-36 border-b"
+      <section
+        className="relative overflow-hidden border-b bg-white px-4 py-10 md:px-6 md:py-14"
         style={{ borderColor: colors.border.DEFAULT }}
       >
-        <div 
-          className="hero-gradient absolute inset-0 opacity-95"
-          style={{
-            background: `radial-gradient(circle at 50% 50%, ${colors.surface.tint} 0%, ${colors.background.DEFAULT} 70%)`,
-          }}
-        />
-        <div className="relative mx-auto grid max-w-[1280px] gap-16 px-6 md:grid-cols-12 md:items-center">
-          <div className="md:col-span-6 space-y-8">
-            <div 
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em]"
-              style={{
-                backgroundColor: colors.surface.low,
-                color: colors.text.primary,
-              }}
-            >
-              <span className="material-symbols-outlined text-sm">precision_manufacturing</span>
-              Next-Gen Additive Manufacturing
-            </div>
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl leading-tight">
-              <span style={{ color: colors.text.primary }}>Precision in </span>
-              <span className="block" style={{ color: colors.primary.DEFAULT }}>Every Layer</span>
-            </h1>
-            <p className="max-w-xl text-base sm:text-lg leading-8 font-normal" style={{ color: colors.text.secondary }}>
-              Expertly crafted 3D-printed products delivered to your door. Experience the fusion of surgical precision and artistic vision.
-            </p>
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <Link to="/products">
-                <Button variant="primary" size="lg" icon="shopping_bag" iconPosition="right">
-                  Shop the Collection
-                </Button>
-              </Link>
-              <Link to="/products">
-                <Button variant="outline" size="lg">
-                  Explore Materials
-                </Button>
-              </Link>
-            </div>
-          </div>
+        <div
+          className="relative mx-auto aspect-[4/3] max-w-[1440px] min-w-0 overflow-hidden rounded-2xl border shadow-lg sm:aspect-[16/9] lg:aspect-[16/7]"
+          onMouseEnter={() => setIsHeroPaused(true)}
+          onMouseLeave={() => setIsHeroPaused(false)}
+          onFocus={() => setIsHeroPaused(true)}
+          onBlur={() => setIsHeroPaused(false)}
+          style={{ borderColor: colors.border.DEFAULT }}
+        >
+          {heroSlides.map((slide, index) => (
+            <img
+              key={slide.image}
+              src={slide.image}
+              alt={slide.alt}
+              aria-hidden={activeHeroSlide !== index}
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+                activeHeroSlide === index ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          ))}
 
-          <div className="md:col-span-6 flex items-center justify-center">
-            <div 
-              className="relative h-[420px] w-full max-w-2xl rounded-2xl p-4 border"
-              style={{
-                backgroundColor: colors.surface.container,
-                borderColor: colors.border.DEFAULT,
-                boxShadow: shadows.lg,
-              }}
-            >
-              <div 
-                className="absolute inset-0 rounded-full blur-3xl"
-                style={{
-                  backgroundColor: colors.primary[50],
-                  opacity: 0.1,
-                }}
+          <button
+            type="button"
+            aria-label="Previous hero slide"
+            onClick={() => setActiveHeroSlide((current) => (current - 1 + heroSlides.length) % heroSlides.length)}
+            className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/50 bg-slate-950/35 text-white backdrop-blur-sm transition hover:bg-slate-950/65 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <span className="material-symbols-outlined">chevron_left</span>
+          </button>
+          <button
+            type="button"
+            aria-label="Next hero slide"
+            onClick={() => setActiveHeroSlide((current) => (current + 1) % heroSlides.length)}
+            className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/50 bg-slate-950/35 text-white backdrop-blur-sm transition hover:bg-slate-950/65 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <span className="material-symbols-outlined">chevron_right</span>
+          </button>
+
+          <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2" role="tablist" aria-label="Hero slides">
+            {heroSlides.map((slide, index) => (
+              <button
+                key={slide.image}
+                type="button"
+                role="tab"
+                aria-label={`Show hero slide ${index + 1}`}
+                aria-selected={activeHeroSlide === index}
+                onClick={() => setActiveHeroSlide(index)}
+                className={`h-2.5 rounded-full border border-white/70 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                  activeHeroSlide === index ? 'w-8 bg-white' : 'w-2.5 bg-white/45 hover:bg-white/80'
+                }`}
               />
-              <img
-                src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80"
-                alt="A sleek 3D-printed titanium kinetic object rendered with high precision"
-                className="relative h-full w-full object-cover rounded-xl"
-              />
-            </div>
+            ))}
           </div>
         </div>
       </section>
