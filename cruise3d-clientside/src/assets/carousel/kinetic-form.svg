@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
-  <title id="title">Kinetic printed form</title>
-  <desc id="desc">A sculptural layered form floating over a technical grid.</desc>
-  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#202535"/><stop offset="1" stop-color="#be6d4e"/></linearGradient><linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7e5c5"/><stop offset=".5" stop-color="#d99065"/><stop offset="1" stop-color="#6d3540"/></linearGradient></defs>
-  <rect width="1600" height="900" fill="url(#bg)"/><path d="M0 700 1600 500v400H0Z" fill="#171923" opacity=".6"/>
-  <g fill="none" stroke="#f7e5c5" stroke-opacity=".18"><path d="M0 760 1600 560M0 820 1600 620M0 880 1600 680"/><path d="M200 0 800 900M500 0 1100 900M800 0 1400 900M1100 0 1600 750"/></g>
-  <g transform="translate(800 455) rotate(-12)"><path d="M-330-40 0-210 330-40 0 130Z" fill="url(#metal)" stroke="#ffe8d0" stroke-width="10"/><path d="M-330-40v120L0 300 330 80V-40L0 130Z" fill="#a6534e" opacity=".8"/><path d="M-250-35 0-160 250-35 0 90Z" fill="#293442" stroke="#ffe8d0" stroke-width="7"/><path d="M-180-30 0-120 180-30 0 60Z" fill="#d8eee5" opacity=".85"/><path d="M-310 40 0 205 310 20M-290 85 0 245 290 55M-260 125 0 275 260 90" fill="none" stroke="#ffd39d" stroke-width="8"/></g>
-  <text x="110" y="170" fill="#fff1df" font-family="sans-serif" font-size="28" letter-spacing="9">COMPUTATIONAL OBJECTS</text>
-</svg>
