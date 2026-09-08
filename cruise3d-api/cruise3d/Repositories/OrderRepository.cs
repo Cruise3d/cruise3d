@@ -60,6 +60,7 @@ namespace cruise3d.API.Repositories
                 .Include(o => o.Address)
                 .Include(o => o.Items)
                     .ThenInclude(i => i.Product)
+                        .ThenInclude(p => p.Images)
                 .Include(o => o.Items)
                     .ThenInclude(i => i.ProductColor)
                 .FirstOrDefaultAsync(o => o.Id == id);

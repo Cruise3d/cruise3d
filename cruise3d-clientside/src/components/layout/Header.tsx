@@ -9,7 +9,6 @@ const navItems = [
   { label: 'Home', to: '/' },
   { label: 'Product', to: '/products' },
   { label: 'Categories', to: '/categories' },
-  { label: 'About Us', to: '/about' },
   { label: 'Contact', to: '/contact' },
 ];
 
@@ -74,6 +73,24 @@ export default function Header() {
               {item.label}
             </Link>
           ))}
+          {isAuthenticated && user?.role === 'admin' && (
+            <Link
+              to="/admin"
+              className="relative text-sm font-medium transition-all duration-200 after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 hover:after:w-full"
+              style={{
+                color: colors.text.secondary,
+                transition: 'color 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = colors.text.primary;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = colors.text.secondary;
+              }}
+            >
+              Dashboard
+            </Link>
+          )}
         </nav>
 
         {/* Right Actions */}
@@ -232,6 +249,27 @@ export default function Header() {
                 {item.label}
               </Link>
             ))}
+            {isAuthenticated && user?.role === 'admin' && (
+              <Link
+                to="/admin"
+                className="text-base font-medium transition-colors duration-200 hover:pl-2"
+                style={{
+                  color: colors.text.secondary,
+                  transition: 'all 0.2s',
+                }}
+                onClick={() => setMenuOpen(false)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = colors.text.primary;
+                  e.currentTarget.style.paddingLeft = '8px';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = colors.text.secondary;
+                  e.currentTarget.style.paddingLeft = '0';
+                }}
+              >
+                Dashboard
+              </Link>
+            )}
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-3 border-t pt-6"

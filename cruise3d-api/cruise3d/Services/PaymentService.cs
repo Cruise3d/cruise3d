@@ -11,9 +11,11 @@ using cruise3d.API.Repositories.Interfaces;
 using cruise3d.API.Services.Interfaces;
 using cruise3d.Models.Entities;
 using cruise3d.Models.Settings;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
 using Razorpay.Api;
 using PaymentEntity = cruise3d.Models.Entities.Payment;
+using HttpMethod = System.Net.Http.HttpMethod;
 
 namespace cruise3d.API.Services;
 
@@ -26,6 +28,7 @@ public class PaymentService : IPaymentService
     private readonly IOrderService _orderService;
     private readonly IAddressRepository _addresses;
     private readonly AppDbContext _db;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly RazorpayOptions _opts;
 
     public PaymentService(
@@ -36,6 +39,7 @@ public class PaymentService : IPaymentService
         IOrderService orderService,
         IAddressRepository addresses,
         AppDbContext db,
+        IHttpClientFactory httpClientFactory,
         IOptions<RazorpayOptions> opts)
     {
         _carts = carts;
@@ -45,6 +49,7 @@ public class PaymentService : IPaymentService
         _orderService = orderService;
         _addresses = addresses;
         _db = db;
+        _httpClientFactory = httpClientFactory;
         _opts = opts.Value;
     }
 
@@ -71,18 +76,40 @@ public class PaymentService : IPaymentService
         // Create Razorpay order (amount in paise)
         var amountPaise = (int)Math.Round(total * 100m);
 
-        var client = new RazorpayClient(_opts.Key, _opts.Secret);
         // Receipt must be <= 40 characters; use shortened GUID (first 12 chars) with prefix
         var shortId = Guid.NewGuid().ToString("N").Substring(0, 12);
-        var options = new Dictionary<string, object>
+        var requestBody = new Dictionary<string, object>
         {
             { "amount", amountPaise },
             { "currency", "INR" },
             { "receipt", $"rcpt_{shortId}" }
         };
 
-        var razorpayOrder = client.Order.Create(options);
-        var orderId = razorpayOrder["id"].ToString() ?? string.Empty;
+        var httpClient = _httpClientFactory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.razorpay.com/v1/orders")
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(requestBody),
+                Encoding.UTF8,
+                "application/json")
+        };
+        var credentials = Convert.ToBase64String(
+            Encoding.UTF8.GetBytes($"{_opts.Key}:{_opts.Secret}"));
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+            "Basic", credentials);
+
+        using var response = await httpClient.SendAsync(request);
+        var responseBody = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+            throw new InvalidOperationException(
+                $"Razorpay order creation failed with HTTP {(int)response.StatusCode}.");
+
+        using var responseJson = JsonDocument.Parse(responseBody);
+        if (!responseJson.RootElement.TryGetProperty("id", out var orderIdElement)
+            || string.IsNullOrWhiteSpace(orderIdElement.GetString()))
+            throw new InvalidOperationException("Razorpay returned an invalid order response.");
+
+        var orderId = orderIdElement.GetString()!;
 
         // Persist payment intent
         var snapshotItems = cartItems.Select(i => new
