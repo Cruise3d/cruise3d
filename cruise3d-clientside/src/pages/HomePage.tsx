@@ -7,9 +7,9 @@ import type { Category } from '../features/categories/types';
 import { Button } from '../components/ui/Button';
 import { theme } from '../styles/theme';
 import type { Product } from '../features/products/types';
-import printerWorkbench from '../assets/carousel/printer-workbench.svg';
-import kineticForm from '../assets/carousel/kinetic-form.svg';
-import materialDetail from '../assets/carousel/material-detail.svg';
+import printerWorkbench from '../assets/carousel/Gemini_Generated_Image_g1jgi5g1jgi5g1jg.png';
+import kineticForm from '../assets/carousel/Gemini_Generated_Image_g1jgi5g1jgi5g1jg (2).png';
+import materialDetail from '../assets/carousel/ChatGPT Image Sep 8, 2026, 08_11_15 PM.png';
 import referenceHero from '../assets/carousel/ChatGPT Image Sep 4, 2026, 04_02_15 PM.png';
 
 const heroSlides = [
