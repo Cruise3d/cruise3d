@@ -8,4 +8,12 @@ public interface IBrevoEmailService
         string verificationLink,
         DateTime expiresAt,
         CancellationToken cancellationToken = default);
+
+    Task SendPasswordResetEmailAsync(
+        string toEmail,
+        string toName,
+        string resetLink,
+        DateTime expiresAt,
+        CancellationToken cancellationToken = default);
 }
+

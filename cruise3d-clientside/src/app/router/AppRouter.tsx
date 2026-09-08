@@ -12,8 +12,10 @@ import OrderDetailPage from '../../features/orders/pages/OrderDetailPage'
 import LoginPage from '../../features/auth/pages/LoginPage'
 import RegisterPage from '../../features/auth/pages/RegisterPage'
 import ForgotPasswordPage from '../../features/auth/pages/ForgotPasswordPage'
+import ResetPasswordPage from '../../features/auth/pages/ResetPasswordPage'
 import VerifyEmailPage from '../../features/auth/pages/VerifyEmailPage'
 import UserProfilePage from '../../features/profile/pages/UserProfilePage'
+import ContactPage from '../../pages/ContactPage'
 import AdminDashboardPage from '../../features/admin/pages/AdminDashboardPage'
 import AdminProductsPage from '../../features/admin/pages/AdminProductsPage'
 import AdminOrdersPage from '../../features/admin/pages/AdminOrdersPage'
@@ -76,6 +78,7 @@ export default function AppRouter() {
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="reset-password" element={<ResetPasswordPage />} />
           <Route path="verify-email" element={<VerifyEmailPage />} />
           <Route
             path="profile"
@@ -104,7 +107,7 @@ export default function AppRouter() {
           <Route path="testimonials" element={<PlaceholderPage title="Testimonials" />} />
           <Route path="wishlist" element={<PlaceholderPage title="Wishlist" />} />
           <Route path="about" element={<PlaceholderPage title="About Us" />} />
-          <Route path="contact" element={<PlaceholderPage title="Contact Us" />} />
+          <Route path="contact" element={<ContactPage />} />
           <Route path="shipping-policy" element={<PlaceholderPage title="Shipping Policy" />} />
           <Route
             path="cancellation-refund"

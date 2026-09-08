@@ -14,6 +14,10 @@ export async function forgotPassword(email: string): Promise<ForgotPasswordRespo
   return axiosClient.post<ForgotPasswordResponse>('/auth/forgot-password', { email }) as unknown as Promise<ForgotPasswordResponse>;
 }
 
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  await axiosClient.post('/auth/reset-password', { token, newPassword });
+}
+
 export async function verifyEmail(token: string): Promise<{ message?: string }> {
   return axiosClient.post<{ message?: string }>('/auth/verify-email', { token }) as unknown as Promise<{ message?: string }>;
 }

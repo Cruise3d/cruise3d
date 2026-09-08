@@ -9,5 +9,8 @@ public interface IAuthService
     Task<AuthResponseDto> GetProfileAsync(Guid userId);
     Task VerifyEmailAsync(string token);
     Task ResendVerificationEmailAsync(string email);
+    Task ForgotPasswordAsync(string email);
+    Task ResetPasswordAsync(ResetPasswordRequestDto dto);
 }
+
 

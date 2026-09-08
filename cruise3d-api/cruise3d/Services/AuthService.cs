@@ -16,6 +16,7 @@ public class AuthService : IAuthService
     private readonly IUserRepository _users;
     private readonly IConfiguration _config;
     private readonly IEmailVerificationTokenService _verificationTokenService;
+    private readonly IPasswordResetTokenService _passwordResetTokenService;
     private readonly IBrevoEmailService _brevoEmailService;
     private readonly ILogger<AuthService> _logger;
 
@@ -23,12 +24,14 @@ public class AuthService : IAuthService
         IUserRepository users,
         IConfiguration config,
         IEmailVerificationTokenService verificationTokenService,
+        IPasswordResetTokenService passwordResetTokenService,
         IBrevoEmailService brevoEmailService,
         ILogger<AuthService> logger)
     {
         _users = users;
         _config = config;
         _verificationTokenService = verificationTokenService;
+        _passwordResetTokenService = passwordResetTokenService;
         _brevoEmailService = brevoEmailService;
         _logger = logger;
     }
@@ -134,6 +137,56 @@ public class AuthService : IAuthService
 
         var (_, expiresAt, verificationLink) = await _verificationTokenService.IssueAsync(user.Id);
         await _brevoEmailService.SendVerificationEmailAsync(user.Email, user.Name, verificationLink, expiresAt);
+    }
+
+    // ─── FORGOT PASSWORD ─────────────────────────────────────────────────────
+    public async Task ForgotPasswordAsync(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new Exception("Email is required.");
+
+        var normalizedEmail = email.ToLowerInvariant().Trim();
+        var user = await _users.GetByEmailAsync(normalizedEmail)
+            ?? throw new Exception("No account found with this email address.");
+
+        if (!user.IsActive)
+            throw new Exception("Your account has been disabled. Contact support.");
+
+        try
+        {
+            var (_, expiresAt, resetLink) = await _passwordResetTokenService.IssueAsync(user.Id);
+            await _brevoEmailService.SendPasswordResetEmailAsync(user.Email, user.Name, resetLink, expiresAt);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send password reset email for user {UserId} ({Email})", user.Id, user.Email);
+            throw new Exception("Unable to send reset email. Please try again later.");
+        }
+    }
+
+    // ─── RESET PASSWORD ──────────────────────────────────────────────────────
+    public async Task ResetPasswordAsync(ResetPasswordRequestDto dto)
+    {
+        if (dto == null || string.IsNullOrWhiteSpace(dto.Token))
+            throw new Exception("Invalid password reset token.");
+
+        if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
+            throw new Exception("Password must be at least 6 characters.");
+
+        var userId = await _passwordResetTokenService.ValidateAndConsumeAsync(dto.Token);
+        if (!userId.HasValue)
+            throw new Exception("Invalid or expired password reset link.");
+
+        var user = await _users.GetByIdAsync(userId.Value)
+            ?? throw new Exception("User not found.");
+
+        if (!user.IsActive)
+            throw new Exception("Your account has been disabled. Contact support.");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _users.UpdateAsync(user);
     }
 
     // ─── HELPERS ─────────────────────────────────────────────────────────────

@@ -1,6 +1,51 @@
-@cruise3d_HostAddress = http://localhost:5284
+@cruise3d_HostAddress = http://localhost:5000
+@testEmail = testuser@example.com
+@testPassword = Password123!
+@newPassword = NewPassword456!
 
-GET {{cruise3d_HostAddress}}/weatherforecast/
-Accept: application/json
+### 1. Register a test user
+POST {{cruise3d_HostAddress}}/api/auth/register
+Content-Type: application/json
 
-###
+{
+  "name": "Test User",
+  "email": "{{testEmail}}",
+  "password": "{{testPassword}}",
+  "phone": "+919876543210"
+}
+
+### 2. Request Password Reset (Forgot Password)
+POST {{cruise3d_HostAddress}}/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "{{testEmail}}"
+}
+
+### 3. Try Request Password Reset for non-existent email (Should fail with 404)
+POST {{cruise3d_HostAddress}}/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com"
+}
+
+### 4. Reset Password with Token (Replace {{resetToken}} with token from DB/Email)
+@resetToken = YOUR_RAW_TOKEN_HERE
+POST {{cruise3d_HostAddress}}/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "{{resetToken}}",
+  "newPassword": "{{newPassword}}"
+}
+
+### 5. Verify Login with New Password
+POST {{cruise3d_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{testEmail}}",
+  "password": "{{newPassword}}"
+}
+

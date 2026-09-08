@@ -62,6 +62,25 @@ public class AuthController : ControllerBase
         await _auth.ResendVerificationEmailAsync(dto.Email);
         return Ok(ApiResponse<string>.Ok(string.Empty, "Verification email sent successfully."));
     }
+
+    // POST api/auth/forgot-password
+    // Public — sends password reset link to user's email
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto dto)
+    {
+        await _auth.ForgotPasswordAsync(dto.Email);
+        return Ok(ApiResponse<string>.Ok(string.Empty, "Password reset link sent successfully."));
+    }
+
+    // POST api/auth/reset-password
+    // Public — resets password with verification token
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto dto)
+    {
+        await _auth.ResetPasswordAsync(dto);
+        return Ok(ApiResponse<string>.Ok(string.Empty, "Password has been reset successfully. You can now sign in with your new password."));
+    }
 }
+
 
 

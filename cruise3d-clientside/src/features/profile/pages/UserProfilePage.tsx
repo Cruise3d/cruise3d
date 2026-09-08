@@ -14,7 +14,7 @@ import {
 import type { Address, CreateAddressRequest } from '../types';
 import type { Order } from '../../orders/types';
 
-type ProfileTab = 'account' | 'orders' | 'addresses' | 'settings';
+type ProfileTab = 'account' | 'orders' | 'addresses';
 
 export const UserProfilePage: React.FC = () => {
   const { user, logout, updateUser } = useAuthStore();
@@ -146,7 +146,6 @@ export const UserProfilePage: React.FC = () => {
     { key: 'account', label: 'Account', icon: 'person' },
     { key: 'orders', label: 'Orders', icon: 'receipt_long' },
     { key: 'addresses', label: 'Addresses', icon: 'location_on' },
-    { key: 'settings', label: 'Settings', icon: 'settings' },
   ];
 
   const getStatusColor = (status: string) => {
@@ -168,7 +167,7 @@ export const UserProfilePage: React.FC = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-on-surface">My Account</h1>
           <p className="text-on-surface-variant mt-1">
-            Manage your account settings and view your orders
+            Manage your account and view your orders
           </p>
         </div>
 
@@ -280,6 +279,14 @@ export const UserProfilePage: React.FC = () => {
                     </Button>
                   </div>
                 )}
+
+                <div className="mt-8 border-t border-surface-container-highest pt-6">
+                  <h2 className="text-xl font-bold text-error mb-4">Danger Zone</h2>
+                  <p className="text-on-surface-variant mb-4">
+                    Once you delete your account, there is no going back. Please be certain.
+                  </p>
+                  <Button variant="danger">Delete Account</Button>
+                </div>
               </div>
             )}
 
@@ -469,85 +476,6 @@ export const UserProfilePage: React.FC = () => {
               </div>
             )}
 
-            {/* Settings Tab */}
-            {activeTab === 'settings' && (
-              <div className="space-y-6">
-                <div className="bg-surface-container-low rounded-2xl border border-surface-container-highest p-6">
-                  <h2 className="text-xl font-bold text-on-surface mb-6">Notification Settings</h2>
-
-                  <div className="space-y-4">
-                    <label className="flex items-center justify-between cursor-pointer">
-                      <div>
-                        <p className="font-medium text-on-surface">Email Notifications</p>
-                        <p className="text-sm text-on-surface-variant">Receive order updates via email</p>
-                      </div>
-                      <input
-                        type="checkbox"
-                        defaultChecked
-                        className="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary"
-                      />
-                    </label>
-
-                    <label className="flex items-center justify-between cursor-pointer">
-                      <div>
-                        <p className="font-medium text-on-surface">SMS Notifications</p>
-                        <p className="text-sm text-on-surface-variant">Receive SMS updates for orders</p>
-                      </div>
-                      <input
-                        type="checkbox"
-                        className="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary"
-                      />
-                    </label>
-
-                    <label className="flex items-center justify-between cursor-pointer">
-                      <div>
-                        <p className="font-medium text-on-surface">Marketing Emails</p>
-                        <p className="text-sm text-on-surface-variant">Receive promotional offers and news</p>
-                      </div>
-                      <input
-                        type="checkbox"
-                        defaultChecked
-                        className="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary"
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                <div className="bg-surface-container-low rounded-2xl border border-surface-container-highest p-6">
-                  <h2 className="text-xl font-bold text-on-surface mb-6">Security</h2>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-on-surface">Password</p>
-                        <p className="text-sm text-on-surface-variant">Last changed 30 days ago</p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Change Password
-                      </Button>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-on-surface">Two-Factor Authentication</p>
-                        <p className="text-sm text-on-surface-variant">Add an extra layer of security</p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Enable
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-surface-container-low rounded-2xl border border-error/20 p-6">
-                  <h2 className="text-xl font-bold text-error mb-4">Danger Zone</h2>
-                  <p className="text-on-surface-variant mb-4">
-                    Once you delete your account, there is no going back. Please be certain.
-                  </p>
-                  <Button variant="danger">Delete Account</Button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

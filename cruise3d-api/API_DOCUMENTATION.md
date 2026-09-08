@@ -1,167 +1,459 @@
 # Cruise3D Backend API Documentation
 
-This document is a frontend-oriented reference for the Cruise3D backend API.
-It is based on the current controller and DTO code in this repository.
+Welcome to the **Cruise3D Web API** frontend and developer reference.
+This document provides request/response schemas, authentication requirements, query parameters, error responses, and workflow guides for all available endpoints.
 
-## Base Information
+---
 
-- Base URL: `/api`
-- Content-Type: `application/json`
-- Auth scheme: `Authorization: Bearer <jwt>`
+## 📑 Table of Contents
 
-## Standard Response Format
+1. [Base Information & Conventions](#-base-information--conventions)
+2. [Standard Response Wrapper](#-standard-response-wrapper)
+3. [Common HTTP Status Codes](#-common-http-status-codes)
+4. [Authentication & Email Verification (`/api/auth`)](#1-authentication--email-verification-apiauth)
+5. [Customer Address Management (`/api/addresses`)](#2-customer-address-management-apiaddresses)
+6. [Product Catalog & Management (`/api/products`)](#3-product-catalog--management-apiproducts)
+7. [Categories Catalog (`/api/categories`)](#4-categories-catalog-apicategories)
+8. [Shopping Cart (`/api/cart`)](#5-shopping-cart-apicart)
+9. [Orders & DTDC Courier Tracking (`/api/orders`)](#6-orders--dtdc-courier-tracking-apiorders)
+10. [Payments & Razorpay Checkout (`/api/payments`)](#7-payments--razorpay-checkout-apipayments)
+11. [Promotional Offers & Marquee Banner (`/api/offers`)](#8-promotional-offers--marquee-banner-apioffers)
+12. [FCM Push Notifications & Device Tokens (`/api/notification-tokens`, `/api/notifications`)](#9-fcm-push-notifications--device-tokens)
+13. [Media & Image Uploads (`/api/upload`)](#10-media--image-uploads-apiupload)
+14. [Product Reviews & Ratings (`/api/reviews`)](#11-product-reviews--ratings-apireviews)
+15. [Admin Operations & Dashboard (`/api/admin`)](#12-admin-operations--dashboard-apiadmin)
+16. [Placeholders & Stubs (`/api/testimonials`, `/api/newsletter`)](#13-placeholders--stubs)
 
-Most endpoints return the shared wrapper below:
+---
 
+## 🌐 Base Information & Conventions
+
+- **Base URL**: `/api`
+- **Default Content-Type**: `application/json`
+- **Authentication Scheme**: JWT Bearer Token
+  ```http
+  Authorization: Bearer <jwt-token>
+  ```
+- **Currency**: Indian Rupee (INR - `₹`)
+- **Default Flat Shipping Charge**: `₹60`
+
+---
+
+## 📦 Standard Response Wrapper
+
+All controller endpoints return a standardized JSON envelope (`ApiResponse<T>`):
+
+### Success Response
 ```json
 {
   "success": true,
-  "message": "Success",
-  "data": {}
+  "message": "Action completed successfully.",
+  "data": { ... }
 }
 ```
 
-Failure responses use the same shape with `success: false`.
-
-## Authentication
-
-Register and login return an `AuthResponseDto`.
-
+### Failure Response
 ```json
 {
-  "token": "jwt-token",
-  "name": "John Doe",
-  "email": "john@example.com",
-  "role": "customer"
+  "success": false,
+  "message": "Detailed error message describing the failure.",
+  "data": null
 }
 ```
 
-## Common Status Codes
+---
 
-- `200 OK`: Successful request
-- `201 Created`: Resource created
-- `400 Bad Request`: Validation or business rule failure
-- `401 Unauthorized`: Missing/invalid token
-- `403 Forbidden`: Authenticated but wrong role
-- `404 Not Found`: Resource does not exist
-- `409 Conflict`: Duplicate resource or conflict
+## 🚦 Common HTTP Status Codes
 
-## Authentication Endpoints
+| Status Code | Description |
+| :--- | :--- |
+| `200 OK` | Request succeeded; response contains requested data |
+| `201 Created` | Resource successfully created |
+| `204 NoContent` | Request succeeded with no content returned |
+| `400 BadRequest` | Validation failure or business logic error |
+| `401 Unauthorized` | Missing, invalid, or expired JWT token |
+| `403 Forbidden` | Authenticated user lacks required role (`admin` or `customer`) |
+| `404 NotFound` | Target resource does not exist |
+| `409 Conflict` | Unique constraint violation (e.g. duplicate email, SKU conflict) |
+| `500 InternalServerError` | Server-side execution exception |
+
+---
+
+## 1. Authentication & Email Verification (`/api/auth`)
+
+User registration utilizes a secure two-step email verification system integrated with **Brevo**.
 
 ### POST `/api/auth/register`
+Public endpoint to register a new user account as a `customer`. Generates an email verification token and dispatches an activation link via Brevo.
 
-Public endpoint to create a new account.
-
-Request body:
-
+**Request Body:**
 ```json
 {
   "name": "John Doe",
-  "email": "john@example.com",
-  "password": "secret123",
-  "phone": "+91-9876543210"
+  "email": "john.doe@example.com",
+  "password": "SecurePassword123!",
+  "phone": "+919876543210"
 }
 ```
 
-Field rules:
+**Field Rules:**
+- `name` (string, required): Max 100 characters.
+- `email` (string, required): Valid email format. Unique in database.
+- `password` (string, required): Minimum 6 characters.
+- `phone` (string, optional): Max 20 characters.
 
-- `name`: required, max 100 characters
-- `email`: required, valid email
-- `password`: required, minimum 6 characters
-- `phone`: optional
-
-Example response:
-
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
-  "message": "Registration successful.",
+  "message": "Registration successful. Please check your email to verify your account.",
   "data": {
-    "token": "jwt-token",
     "name": "John Doe",
-    "email": "john@example.com",
-    "role": "customer"
+    "email": "john.doe@example.com",
+    "isEmailVerified": false
   }
 }
 ```
 
+---
+
 ### POST `/api/auth/login`
+Public login endpoint for both `customer` and `admin` roles.
 
-Public endpoint for login.
-
-Request body:
-
+**Request Body:**
 ```json
 {
-  "email": "john@example.com",
-  "password": "secret123"
+  "email": "john.doe@example.com",
+  "password": "SecurePassword123!"
 }
 ```
 
-Example response:
+**Success Response (`200 OK`) — Verified Account:**
+```json
+{
+  "success": true,
+  "message": "Login successful.",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "role": "customer",
+    "isEmailVerified": true
+  }
+}
+```
+
+**Success Response (`200 OK`) — Unverified Account:**
+> [!NOTE]
+> If the user's email is not yet verified, `isEmailVerified` is `false` and `token` is returned as an empty string `""`. The frontend should prompt the user to check their email or resend verification.
 
 ```json
 {
   "success": true,
   "message": "Login successful.",
   "data": {
-    "token": "jwt-token",
+    "token": "",
     "name": "John Doe",
-    "email": "john@example.com",
-    "role": "customer"
+    "email": "john.doe@example.com",
+    "role": "customer",
+    "isEmailVerified": false
   }
 }
 ```
 
+---
+
 ### GET `/api/auth/me`
+Retrieves the logged-in user's profile and active session details.
 
-Requires authentication. Returns the current user profile.
-
-Headers:
-
+**Headers:**
 ```http
-Authorization: Bearer jwt-token
+Authorization: Bearer <jwt-token>
 ```
 
-Example response:
-
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
   "message": "Success",
   "data": {
-    "token": "jwt-token",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "name": "John Doe",
-    "email": "john@example.com",
-    "role": "customer"
+    "email": "john.doe@example.com",
+    "role": "customer",
+    "isEmailVerified": true
   }
 }
 ```
 
-## Product Endpoints
+---
 
-### GET `/api/products`
+### POST `/api/auth/verify-email`
+Public endpoint. Verifies the one-time secure token received by the user in their email inbox.
 
-Public catalog endpoint with filtering and pagination.
-
-Query parameters:
-
-- `categoryId` - optional `Guid`
-- `search` - optional search text
-- `minPrice` - optional minimum price
-- `maxPrice` - optional maximum price
-- `sortBy` - default `newest`
-- `page` - default `1`
-- `pageSize` - default `12`
-
-Example request:
-
-```http
-GET /api/products?search=dragon&categoryId=4f6d5b2a-3f0a-4f3f-9d2f-1c2f3b8d2a11&minPrice=100&maxPrice=500&sortBy=price_asc&page=1&pageSize=12
+**Request Body:**
+```json
+{
+  "token": "dGVzdC12ZXJpZmljYXRpb24tdG9rZW4"
+}
 ```
 
-Response shape:
+**Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Email verified successfully.",
+  "data": ""
+}
+```
 
+---
+
+### POST `/api/auth/resend-verification`
+Public endpoint. Revokes existing active verification tokens and issues a fresh verification email.
+
+**Request Body:**
+```json
+{
+  "email": "john.doe@example.com"
+}
+```
+
+**Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Verification email sent successfully.",
+  "data": ""
+}
+```
+
+---
+
+### POST `/api/auth/forgot-password`
+Public endpoint. Initiates the password recovery flow. Generates a cryptographically secure one-time password reset token (valid for 1 hour) and dispatches an email containing the reset link to the registered user's inbox via Brevo.
+
+**Request Body:**
+```json
+{
+  "email": "john.doe@example.com"
+}
+```
+
+**Field Rules:**
+- `email` (string, required): Valid email format of the registered account. Max 255 characters.
+
+**Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Password reset link sent successfully.",
+  "data": ""
+}
+```
+
+**Error Responses:**
+- `404 Not Found`: If no account exists with the provided email (`"No account found with this email address."`).
+- `400 Bad Request`: If the email format is invalid or missing.
+- `500 / 503 Internal Server Error`: If mail dispatch via Brevo encounters an unexpected error.
+
+---
+
+### POST `/api/auth/reset-password`
+Public endpoint. Consumes the password reset security token and sets a new BCrypt-hashed password for the account. Once used, the reset token is immediately invalidated.
+
+**Request Body:**
+```json
+{
+  "token": "dGVzdC1yZXNldC10b2tlbi0xMjM",
+  "newPassword": "MyNewSecurePassword123!"
+}
+```
+
+**Field Rules:**
+- `token` (string, required): The security token received in the query parameter (`?token=...`) of the password reset email link.
+- `newPassword` (string, required): Minimum 6 characters, maximum 100 characters.
+
+**Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Password has been reset successfully. You can now sign in with your new password.",
+  "data": ""
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: If the token is invalid, expired, or already consumed (`"Invalid or expired password reset link."`), or if password validation fails.
+- `404 Not Found`: If the user account associated with the token is not found.
+
+---
+
+## 2. Customer Address Management (`/api/addresses`)
+
+Enables customers to save, manage, and designate default shipping addresses for checkout.
+
+**Access**: `Authorize(Roles = "customer")`
+
+### GET `/api/addresses`
+Returns all shipping addresses belonging to the authenticated customer.
+
+**Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "fullName": "John Doe",
+      "addressLine": "Flat 402, Skyline Residency, MG Road",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "pincode": "560001",
+      "phone": "+919876543210",
+      "isDefault": true
+    }
+  ]
+}
+```
+
+---
+
+### POST `/api/addresses`
+Saves a new shipping address. If `isDefault` is set to `true`, any previous default address for this user is automatically unmarked.
+
+**Request Body:**
+```json
+{
+  "fullName": "John Doe",
+  "addressLine": "Flat 402, Skyline Residency, MG Road",
+  "city": "Bengaluru",
+  "state": "Karnataka",
+  "pincode": "560001",
+  "phone": "+919876543210",
+  "isDefault": true
+}
+```
+
+**Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Address created successfully.",
+  "data": {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "fullName": "John Doe",
+    "addressLine": "Flat 402, Skyline Residency, MG Road",
+    "city": "Bengaluru",
+    "state": "Karnataka",
+    "pincode": "560001",
+    "phone": "+919876543210",
+    "isDefault": true
+  }
+}
+```
+
+---
+
+### PUT `/api/addresses/{id}`
+Updates an existing shipping address owned by the customer.
+
+**Request Body:**
+```json
+{
+  "fullName": "Johnathan Doe",
+  "addressLine": "Door 12B, Green Meadows",
+  "city": "Bengaluru",
+  "state": "Karnataka",
+  "pincode": "560034",
+  "phone": "+919876543210",
+  "isDefault": false
+}
+```
+
+**Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Address updated successfully.",
+  "data": {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "fullName": "Johnathan Doe",
+    "addressLine": "Door 12B, Green Meadows",
+    "city": "Bengaluru",
+    "state": "Karnataka",
+    "pincode": "560034",
+    "phone": "+919876543210",
+    "isDefault": false
+  }
+}
+```
+
+---
+
+### PUT `/api/addresses/{id}/default`
+Sets the specified address as the customer's default shipping address.
+
+**Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Default address updated.",
+  "data": {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "fullName": "Johnathan Doe",
+    "addressLine": "Door 12B, Green Meadows",
+    "city": "Bengaluru",
+    "state": "Karnataka",
+    "pincode": "560034",
+    "phone": "+919876543210",
+    "isDefault": true
+  }
+}
+```
+
+---
+
+### DELETE `/api/addresses/{id}`
+Deletes the specified address.
+
+**Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Address deleted successfully.",
+  "data": null
+}
+```
+
+---
+
+## 3. Product Catalog & Management (`/api/products`)
+
+### GET `/api/products`
+Public catalog endpoint supporting multi-criteria search, category filtering, price filtering, sorting, and pagination.
+
+**Query Parameters:**
+- `categoryId` (`Guid`, optional): Filter by category ID.
+- `search` (`string`, optional): Search across product title and SKU.
+- `minPrice` (`decimal`, optional): Minimum price threshold.
+- `maxPrice` (`decimal`, optional): Maximum price threshold.
+- `sortBy` (`string`, default: `"newest"`): Sorting options:
+  - `newest`: Sorted by `createdAt DESC`
+  - `price_asc`: Lowest price first
+  - `price_desc`: Highest price first
+  - `rating`: Highest rating first
+  - `bestsellers`: Bestseller products first
+- `page` (`int`, default: `1`): Current page number.
+- `pageSize` (`int`, default: `12`): Number of items per page.
+
+**Example Request:**
+```http
+GET /api/products?search=dragon&minPrice=200&maxPrice=1000&sortBy=price_asc&page=1&pageSize=12
+```
+
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
@@ -169,16 +461,16 @@ Response shape:
   "data": {
     "items": [
       {
-        "id": "b6d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-        "title": "Dragon Miniature",
-        "price": 299,
-        "stock": 14,
+        "id": "7b2d5a31-7e8c-4f1b-85ad-3cb6025dfa11",
+        "title": "Articulated Crystal Dragon",
+        "price": 499.00,
+        "stock": 25,
         "isInStock": true,
-        "categoryName": "Miniatures",
+        "categoryName": "Articulated Models",
         "colorType": "custom",
-        "primaryImageUrl": "https://cdn.example.com/products/dragon.jpg",
-        "averageRating": 4.7,
-        "reviewCount": 18
+        "primaryImageUrl": "https://res.cloudinary.com/cruise3d/image/upload/v1/products/dragon.webp",
+        "averageRating": 4.8,
+        "reviewCount": 12
       }
     ],
     "total": 1,
@@ -189,242 +481,262 @@ Response shape:
 }
 ```
 
+---
+
 ### GET `/api/products/featured`
+Public endpoint returning featured products for the storefront homepage.
 
-Public endpoint for featured products.
-
-Example response:
-
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
   "message": "Success",
   "data": [
     {
-      "id": "b6d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-      "title": "Dragon Miniature",
-      "price": 299,
-      "stock": 14,
+      "id": "7b2d5a31-7e8c-4f1b-85ad-3cb6025dfa11",
+      "title": "Articulated Crystal Dragon",
+      "price": 499.00,
+      "stock": 25,
       "isInStock": true,
-      "categoryName": "Miniatures",
+      "categoryName": "Articulated Models",
       "colorType": "custom",
-      "primaryImageUrl": "https://cdn.example.com/products/dragon.jpg",
-      "averageRating": 4.7,
-      "reviewCount": 18
+      "primaryImageUrl": "https://res.cloudinary.com/cruise3d/image/upload/v1/products/dragon.webp",
+      "averageRating": 4.8,
+      "reviewCount": 12
     }
   ]
 }
 ```
 
+---
+
 ### GET `/api/products/bestsellers`
+Public endpoint returning bestselling products for the storefront homepage.
 
-Public endpoint for best-selling products.
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Success",
-  "data": []
-}
-```
+---
 
 ### GET `/api/products/{id}`
+Public endpoint providing the complete details for a product, including colors, specs, Cloudinary images, and rating statistics.
 
-Public detailed product endpoint.
-
-Example response:
-
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
   "message": "Success",
   "data": {
-    "id": "b6d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-    "title": "Dragon Miniature",
-    "description": "High detail 3D printed dragon",
-    "sku": "DRAGON-001",
-    "price": 299,
-    "stock": 14,
-    "material": "PLA",
-    "weightGrams": 120,
-    "dimensions": "15 x 10 x 8 cm",
-    "estimatedDelivery": "5-7 business days",
+    "id": "7b2d5a31-7e8c-4f1b-85ad-3cb6025dfa11",
+    "title": "Articulated Crystal Dragon",
+    "description": "Exquisitely detailed 3D printed dragon with flexible joints.",
+    "sku": "DRG-CRY-001",
+    "price": 499.00,
+    "stock": 25,
+    "material": "Silk PLA",
+    "weightGrams": 140,
+    "dimensions": "45 x 8 x 6 cm",
+    "estimatedDelivery": "3-5 business days",
     "colorType": "custom",
     "defaultColorName": null,
     "defaultColorHex": null,
     "isFeatured": true,
-    "isBestseller": false,
+    "isBestseller": true,
     "isActive": true,
-    "createdAt": "2026-07-29T10:00:00Z",
-    "categoryId": "4f6d5b2a-3f0a-4f3f-9d2f-1c2f3b8d2a11",
-    "categoryName": "Miniatures",
+    "createdAt": "2026-08-01T10:00:00Z",
+    "categoryId": "2e1b4c5d-3a7f-4f8b-9d1a-4e5f6a7b8c9d",
+    "categoryName": "Articulated Models",
     "colors": [
       {
-        "id": "0b6c2a8e-4d3a-4d7c-8ad3-3adf1d7a8e11",
-        "colorName": "Red",
-        "colorHex": "#ff0000",
-        "stockOverride": 5,
+        "id": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+        "colorName": "Emerald Green",
+        "colorHex": "#50C878",
+        "stockOverride": 10,
         "sortOrder": 0
+      },
+      {
+        "id": "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e",
+        "colorName": "Ruby Red",
+        "colorHex": "#E0115F",
+        "stockOverride": 15,
+        "sortOrder": 1
       }
     ],
     "images": [
       {
-        "id": "1d7b1b1c-8e2d-4c24-a4a4-4c8d7c2a9f11",
-        "url": "https://cdn.example.com/products/dragon-red.jpg",
+        "id": "8f7e6d5c-4b3a-2f1e-0d9c-8b7a6f5e4d3c",
+        "url": "https://res.cloudinary.com/cruise3d/image/upload/v1/products/dragon_green.webp",
         "isPrimary": true,
         "sortOrder": 0,
-        "productColorId": "0b6c2a8e-4d3a-4d7c-8ad3-3adf1d7a8e11"
+        "productColorId": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
       }
     ],
     "specs": [
       {
-        "id": "2a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
-        "specKey": "Infill",
-        "specValue": "20%",
+        "id": "9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d",
+        "specKey": "Print Layer Height",
+        "specValue": "0.12mm Ultra Fine",
         "sortOrder": 0
       }
     ],
-    "averageRating": 4.7,
-    "reviewCount": 18
+    "averageRating": 4.8,
+    "reviewCount": 12
   }
 }
 ```
 
+---
+
 ### POST `/api/products`
+Admin only (`Authorize(Roles = "admin")`). Creates a new product with associated colors, specs, and images.
 
-Admin only. Creates a new product.
-
-Headers:
-
-```http
-Authorization: Bearer admin-jwt-token
-```
-
-Request body:
-
+**Request Body:**
 ```json
 {
-  "title": "Dragon Miniature",
-  "description": "High detail 3D printed dragon",
-  "sku": "DRAGON-001",
-  "price": 299,
-  "stock": 14,
-  "categoryId": "4f6d5b2a-3f0a-4f3f-9d2f-1c2f3b8d2a11",
-  "material": "PLA",
-  "weightGrams": 120,
-  "dimensions": "15 x 10 x 8 cm",
-  "estimatedDelivery": "5-7 business days",
-  "colorType": "custom",
-  "defaultColorName": null,
-  "defaultColorHex": null,
-  "colors": [
+  "title": "Geometric Succulent Planter",
+  "description": "Modern minimalist geometric planter for mini succulents.",
+  "sku": "PLT-GEO-002",
+  "price": 249.00,
+  "stock": 50,
+  "categoryId": "2e1b4c5d-3a7f-4f8b-9d1a-4e5f6a7b8c9d",
+  "material": "Matte PLA",
+  "weightGrams": 85,
+  "dimensions": "10 x 10 x 9 cm",
+  "estimatedDelivery": "2-4 business days",
+  "colorType": "fixed",
+  "defaultColorName": "Matte White",
+  "defaultColorHex": "#FFFFFF",
+  "colors": [],
+  "images": [
     {
-      "colorName": "Red",
-      "colorHex": "#ff0000",
-      "stockOverride": 5,
-      "sortOrder": 0
+      "url": "https://res.cloudinary.com/cruise3d/image/upload/v1/products/planter.webp",
+      "isPrimary": true,
+      "sortOrder": 0,
+      "productColorId": null
     }
   ],
   "specs": [
     {
-      "specKey": "Infill",
-      "specValue": "20%",
+      "specKey": "Drainage Hole",
+      "specValue": "Included (8mm)",
       "sortOrder": 0
     }
   ],
-  "isFeatured": true,
+  "isFeatured": false,
   "isBestseller": false
 }
 ```
 
-Field notes:
-
-- `title` required
-- `sku` required and must be unique
-- `price` required
-- `stock` optional but typically sent
-- `colorType` required, expected values are `fixed` or `custom`
-- `colors` is used when `colorType = custom`
-- `defaultColorName` and `defaultColorHex` are used when `colorType = fixed`
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Product created successfully.",
-  "data": {
-    "id": "b6d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-    "title": "Dragon Miniature",
-    "sku": "DRAGON-001",
-    "price": 299,
-    "stock": 14,
-    "colorType": "custom",
-    "isFeatured": true,
-    "isBestseller": false,
-    "isActive": true
-  }
-}
-```
+---
 
 ### PUT `/api/products/{id}`
+Admin only. Partially updates a product. Any omitted field remains unchanged.
 
-Admin only. Updates an existing product.
-
-Request body is partial and all fields are optional.
-
-Example body:
-
+**Request Body Example:**
 ```json
 {
-  "price": 349,
-  "stock": 10,
+  "price": 279.00,
+  "stock": 45,
   "isFeatured": true
 }
 ```
 
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Product updated successfully.",
-  "data": {
-    "id": "b6d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-    "title": "Dragon Miniature",
-    "sku": "DRAGON-001",
-    "price": 349,
-    "stock": 10
-  }
-}
-```
+---
 
 ### DELETE `/api/products/{id}`
+Admin only. Performs a soft deletion by setting `isActive = false`. Preserves referential integrity for historic orders.
 
-Admin only. Performs a soft delete.
+---
 
-Example response:
+## 4. Categories Catalog (`/api/categories`)
 
+### GET `/api/categories`
+Public endpoint returning all categories sorted by `sortOrder`.
+
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
-  "message": "Product deleted successfully.",
-  "data": "Product deleted."
+  "message": "Success",
+  "data": [
+    {
+      "id": "2e1b4c5d-3a7f-4f8b-9d1a-4e5f6a7b8c9d",
+      "name": "Articulated Models",
+      "slug": "articulated-models",
+      "iconUrl": "https://res.cloudinary.com/cruise3d/image/upload/v1/categories/dragon-icon.svg",
+      "sortOrder": 0
+    }
+  ]
 }
 ```
 
-## Cart Endpoints
+---
 
-All cart routes require a customer token.
+### GET `/api/categories/with-products`
+Public endpoint returning all categories populated with their active product catalog items (`List<ProductListItemDto>`). Ideal for mega-menus and categorized storefront directory pages.
+
+**Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": [
+    {
+      "id": "2e1b4c5d-3a7f-4f8b-9d1a-4e5f6a7b8c9d",
+      "name": "Articulated Models",
+      "slug": "articulated-models",
+      "iconUrl": "https://res.cloudinary.com/cruise3d/image/upload/v1/categories/dragon-icon.svg",
+      "sortOrder": 0,
+      "products": [
+        {
+          "id": "7b2d5a31-7e8c-4f1b-85ad-3cb6025dfa11",
+          "title": "Articulated Crystal Dragon",
+          "price": 499.00,
+          "stock": 25,
+          "isInStock": true,
+          "categoryName": "Articulated Models",
+          "colorType": "custom",
+          "primaryImageUrl": "https://res.cloudinary.com/cruise3d/image/upload/v1/products/dragon.webp",
+          "averageRating": 4.8,
+          "reviewCount": 12
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### POST `/api/categories`
+Admin only. Creates a new category.
+
+**Request Body:**
+```json
+{
+  "name": "Home Decor",
+  "slug": "home-decor",
+  "iconUrl": "https://res.cloudinary.com/cruise3d/image/upload/v1/categories/decor.svg"
+}
+```
+
+---
+
+### PUT `/api/categories/{id}`
+Admin only. Updates category name, slug, or icon.
+
+---
+
+### DELETE `/api/categories/{id}`
+Admin only. Deletes a category. Automatically unassigns any linked products (`CategoryId = null`).
+
+---
+
+## 5. Shopping Cart (`/api/cart`)
+
+**Access**: `Authorize(Roles = "customer")`
 
 ### GET `/api/cart`
+Retrieves the authenticated customer's cart items, subtotal, and stock availability.
 
-Returns the logged-in customer's cart.
-
-Example response:
-
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
@@ -432,894 +744,503 @@ Example response:
   "data": {
     "items": [
       {
-        "id": "c3d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-        "productId": "b6d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-        "productTitle": "Dragon Miniature",
-        "productImageUrl": "https://cdn.example.com/products/dragon.jpg",
-        "price": 299,
+        "id": "c1d2e3f4-5a6b-7c8d-9e0f-1a2b3c4d5e6f",
+        "productId": "7b2d5a31-7e8c-4f1b-85ad-3cb6025dfa11",
+        "productTitle": "Articulated Crystal Dragon",
+        "productImageUrl": "https://res.cloudinary.com/cruise3d/image/upload/v1/products/dragon.webp",
+        "price": 499.00,
         "quantity": 2,
-        "itemTotal": 598,
-        "productColorId": "0b6c2a8e-4d3a-4d7c-8ad3-3adf1d7a8e11",
-        "colorName": "Red",
-        "colorHex": "#ff0000",
-        "availableStock": 5
+        "itemTotal": 998.00,
+        "productColorId": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+        "colorName": "Emerald Green",
+        "colorHex": "#50C878",
+        "availableStock": 10
       }
     ],
-    "subtotal": 598,
+    "subtotal": 998.00,
     "totalItems": 2
   }
 }
 ```
+
+---
 
 ### POST `/api/cart`
+Adds an item to the user's cart. If the item with the same color already exists in the cart, the quantity is incremented.
 
-Add an item to the cart.
-
-Request body:
-
+**Request Body:**
 ```json
 {
-  "productId": "b6d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-  "productColorId": "0b6c2a8e-4d3a-4d7c-8ad3-3adf1d7a8e11",
-  "quantity": 2
+  "productId": "7b2d5a31-7e8c-4f1b-85ad-3cb6025dfa11",
+  "productColorId": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+  "quantity": 1
 }
 ```
 
-Field notes:
-
-- `productId` required
-- `productColorId` optional unless the product uses custom colors
-- `quantity` must be at least 1
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Item added to cart.",
-  "data": {
-    "items": [],
-    "subtotal": 598,
-    "totalItems": 2
-  }
-}
-```
+---
 
 ### PUT `/api/cart/{cartId}`
+Updates the quantity of an existing cart item.
 
-Update cart item quantity.
-
-Request body:
-
+**Request Body:**
 ```json
 {
   "quantity": 3
 }
 ```
 
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Cart updated.",
-  "data": {
-    "items": [],
-    "subtotal": 897,
-    "totalItems": 3
-  }
-}
-```
+---
 
 ### DELETE `/api/cart/{cartId}`
+Removes a specific item from the cart.
 
-Remove a cart item.
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Item removed from cart.",
-  "data": {
-    "items": [],
-    "subtotal": 0,
-    "totalItems": 0
-  }
-}
-```
+---
 
 ### DELETE `/api/cart`
+Clears all items from the customer's cart.
 
-Clear the whole cart.
+---
 
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Success",
-  "data": "Cart cleared."
-}
-```
-
-## Order Endpoints
-
-All order routes require authentication.
+## 6. Orders & DTDC Courier Tracking (`/api/orders`)
 
 ### POST `/api/orders`
+Customer only. Places a new order from current cart items. Validates inventory, snapshots pricing and colors, deducts stock, clears cart, and dispatches an admin push notification.
 
-Customer only. Creates an order from the current cart.
-
-Request body:
-
+**Request Body:**
 ```json
 {
-  "addressId": "2c6d5a8e-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-  "paymentProvider": "razorpay",
-  "paymentId": "pay_1234567890"
+  "addressId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "paymentProvider": "cod",
+  "paymentId": null
 }
 ```
 
-Field notes:
-
-- `addressId` required
-- `paymentProvider` required, default `razorpay`
-- `paymentId` optional and usually supplied after frontend payment success
-
-Example response:
-
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
   "message": "Order placed successfully.",
   "data": {
-    "id": "8f6d5a8e-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-    "subtotal": 598,
-    "shippingCharge": 60,
-    "totalAmount": 658,
+    "id": "e8f7a6b5-4c3d-2e1f-0a9b-8c7d6e5f4a3b",
+    "subtotal": 998.00,
+    "shippingCharge": 60.00,
+    "totalAmount": 1058.00,
     "status": "pending",
-    "paymentStatus": "unpaid",
-    "paymentId": "pay_1234567890",
-    "placedAt": "2026-07-29T11:30:00Z",
+    "paymentStatus": "pending",
+    "paymentId": null,
+    "shippingPhone": "+919876543210",
+    "customerEmail": "john.doe@example.com",
+    "dtdcTrackingId": null,
+    "placedAt": "2026-09-07T14:30:00Z",
     "address": {
       "fullName": "John Doe",
-      "addressLine": "12 Main Road",
-      "city": "Pune",
-      "state": "Maharashtra",
-      "pincode": "411001"
+      "addressLine": "Flat 402, Skyline Residency, MG Road",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "pincode": "560001",
+      "phone": "+919876543210"
     },
     "items": [
       {
-        "id": "d3d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-        "productId": "b6d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-        "productTitle": "Dragon Miniature",
-        "productImageUrl": "https://cdn.example.com/products/dragon.jpg",
+        "id": "d9c8b7a6-f5e4-d3c2-b1a0-9f8e7d6c5b4a",
+        "productId": "7b2d5a31-7e8c-4f1b-85ad-3cb6025dfa11",
+        "productTitle": "Articulated Crystal Dragon",
+        "productImageUrl": "https://res.cloudinary.com/cruise3d/image/upload/v1/products/dragon_green.webp",
         "quantity": 2,
-        "priceAtPurchase": 299,
-        "itemTotal": 598,
-        "colorName": "Red",
-        "colorHex": "#ff0000"
+        "priceAtPurchase": 499.00,
+        "itemTotal": 998.00,
+        "colorName": "Emerald Green",
+        "colorHex": "#50C878"
       }
     ]
   }
 }
 ```
 
+---
+
 ### GET `/api/orders/my`
+Customer only. Retrieves the logged-in customer's order history.
 
-Customer only. Returns the logged-in customer's order history.
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Success",
-  "data": [
-    {
-      "id": "8f6d5a8e-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-      "subtotal": 598,
-      "shippingCharge": 60,
-      "totalAmount": 658,
-      "status": "pending",
-      "paymentStatus": "unpaid",
-      "paymentId": "pay_1234567890",
-      "placedAt": "2026-07-29T11:30:00Z",
-      "address": {
-        "fullName": "John Doe",
-        "addressLine": "12 Main Road",
-        "city": "Pune",
-        "state": "Maharashtra",
-        "pincode": "411001"
-      },
-      "items": []
-    }
-  ]
-}
-```
+---
 
 ### GET `/api/orders/my/{orderId}`
+Customer only. Retrieves detailed status and item breakdown for a single order owned by the customer.
 
-Customer only. Returns a single order only if it belongs to the current customer.
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Success",
-  "data": {
-    "id": "8f6d5a8e-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-    "subtotal": 598,
-    "shippingCharge": 60,
-    "totalAmount": 658,
-    "status": "pending",
-    "paymentStatus": "unpaid",
-    "paymentId": "pay_1234567890",
-    "placedAt": "2026-07-29T11:30:00Z",
-    "address": {
-      "fullName": "John Doe",
-      "addressLine": "12 Main Road",
-      "city": "Pune",
-      "state": "Maharashtra",
-      "pincode": "411001"
-    },
-    "items": []
-  }
-}
-```
+---
 
 ### GET `/api/orders`
+Admin only (`Authorize(Roles = "admin")`). Retrieves a paginated list of all customer orders across the platform.
 
-Admin only. Lists all orders with optional status filtering.
+**Query Parameters:**
+- `status` (`string`, optional): Filter by order status (`pending`, `confirmed`, `printing`, `shipped`, `delivered`, `cancelled`).
+- `page` (`int`, default: `1`): Current page.
+- `pageSize` (`int`, default: `20`): Items per page.
 
-Query parameters:
-
-- `status` - optional order status
-- `page` - default `1`
-- `pageSize` - default `20`
-
-Example request:
-
-```http
-GET /api/orders?status=pending&page=1&pageSize=20
-```
-
-Example response:
-
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
   "message": "Success",
   "data": {
-    "items": [],
-    "total": 0,
+    "items": [
+      {
+        "id": "e8f7a6b5-4c3d-2e1f-0a9b-8c7d6e5f4a3b",
+        "subtotal": 998.00,
+        "shippingCharge": 60.00,
+        "totalAmount": 1058.00,
+        "status": "pending",
+        "paymentStatus": "paid",
+        "shippingPhone": "+919876543210",
+        "customerEmail": "john.doe@example.com",
+        "dtdcTrackingId": "D102938475",
+        "placedAt": "2026-09-07T14:30:00Z",
+        "address": { ... },
+        "items": [ ... ]
+      }
+    ],
+    "total": 1,
     "page": 1,
     "pageSize": 20,
-    "totalPages": 0
+    "totalPages": 1
   }
 }
 ```
+
+---
 
 ### PUT `/api/orders/{orderId}/status`
+Admin only. Updates the order lifecycle status.
+- Valid status values: `pending`, `confirmed`, `printing`, `shipped`, `delivered`, `cancelled`.
+- When set to `cancelled`, reserved product stock is automatically restored.
+- Sends an instant FCM push notification to the customer notifying them of their order status change.
 
-Admin only. Updates order status.
-
-Request body:
-
+**Request Body:**
 ```json
 {
-  "status": "confirmed"
+  "status": "printing"
 }
 ```
 
-Accepted statuses in the database currently include:
+---
 
-- `pending`
-- `confirmed`
-- `printing`
-- `shipped`
-- `delivered`
-- `cancelled`
+### PUT `/api/orders/{orderId}/tracking`
+Admin only. Sets or clears the **DTDC** courier tracking consignment ID.
 
-Example response:
-
+**Request Body:**
 ```json
 {
-  "success": true,
-  "message": "Order status updated.",
-  "data": {
-    "id": "8f6d5a8e-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-    "status": "confirmed"
-  }
+  "dtdcTrackingId": "DTDC987654321IN"
 }
 ```
+*(Send `null` or empty string to clear the tracking ID).*
 
-## Payment Endpoints
+---
 
-Payments use Razorpay as the provider. The typical flow is:
+## 7. Payments & Razorpay Checkout (`/api/payments`)
 
-- Customer requests a Razorpay order from the server (server creates a Razorpay order and stores a payment intent).
-- Frontend completes payment using Razorpay Checkout.
-- Frontend posts the Razorpay payment result back to the server to verify the signature and finalize the order.
+Cruise3D utilizes a server-validated Razorpay flow with snapshot protection.
 
-All payment-related endpoints require the authenticated user to have the `customer` role unless otherwise noted.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer as Customer (Browser)
+    participant API as Cruise3D Backend
+    participant DB as PostgreSQL
+    participant RZP as Razorpay API
+
+    Customer->>API: POST /api/payments/create-order
+    API->>DB: Fetch cart items & freeze snapshot
+    API->>RZP: Create Razorpay Order (amount in paise)
+    RZP-->>API: Returns order_id (e.g. order_NZx...)
+    API->>DB: Store pending Payment intent with cart snapshot
+    API-->>Customer: Returns orderId, amount, key, checkoutSummary
+
+    Customer->>RZP: Completes Razorpay Checkout modal
+    RZP-->>Customer: Returns razorpay_order_id, payment_id, signature
+
+    Customer->>API: POST /api/payments/verify
+    API->>API: Verify HMAC-SHA256 signature
+    API->>RZP: Fetch payment & verify paid amount
+    API->>DB: Begin Transaction: create Order, snapshot items, deduct stock, clear Cart, mark Payment paid
+    API-->>Customer: Returns OrderId, PaymentStatus, OrderStatus
+```
 
 ### POST `/api/payments/create-order`
+Customer only. Initiates the Razorpay checkout process. Freezes the current cart snapshot into a server-side `Payment` record.
 
-Customer only. Creates a Razorpay order for the current user's cart and returns the order id and checkout details.
-
-Request body: none
-
-Example response:
-
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
   "message": "Success",
   "data": {
-    "orderId": "order_9A33XWu170gUtm",
-    "amount": 65800,
+    "orderId": "order_OG9fW8e7d6c5b4",
+    "amount": 105800,
     "currency": "INR",
-    "key": "rzp_test_TMSkzp2w2veJtm",
+    "key": "rzp_test_YourKeyId",
     "checkoutSummary": {
-      "subtotal": 598,
-      "shippingCharge": 60,
-      "totalAmount": 658
+      "subtotal": 998.00,
+      "shippingCharge": 60.00,
+      "totalAmount": 1058.00
     }
   }
 }
 ```
 
+---
+
 ### POST `/api/payments/verify`
+Customer only. Verifies the cryptographic signature returned by Razorpay Checkout. Atomically converts the payment intent into a completed order and empties the cart.
 
-Customer only. Verify a completed Razorpay payment and create the corresponding order in the system.
-
-Request body (JSON):
-
+**Request Body:**
 ```json
 {
-  "razorpayOrderId": "order_9A33XWu170gUtm",
-  "razorpayPaymentId": "pay_29QQoUBi66xm2f",
-  "razorpaySignature": "5f2b4e...",
-  "addressId": "2c6d5a8e-4f7b-4a6e-a6c3-8f3d5d1c1f11"  // optional: if omitted server uses user's default address
+  "razorpayOrderId": "order_OG9fW8e7d6c5b4",
+  "razorpayPaymentId": "pay_OG9gA1b2c3d4e5",
+  "razorpaySignature": "2f4b0e5d1c8a7e6f3b2a1d0c...",
+  "addressId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
 }
 ```
+*(If `addressId` is omitted, the customer's default shipping address is used automatically).*
 
-Example response:
-
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
   "message": "Payment verified and order created.",
   "data": {
-    "orderId": "8f6d5a8e-4f7b-4a6e-a6c3-8f3d5d1c1f11",
+    "orderId": "e8f7a6b5-4c3d-2e1f-0a9b-8c7d6e5f4a3b",
     "paymentStatus": "paid",
     "orderStatus": "pending",
-    "paymentId": "pay_29QQoUBi66xm2f",
-    "totalAmount": 658
+    "paymentId": "pay_OG9gA1b2c3d4e5",
+    "totalAmount": 1058.00
   }
 }
 ```
 
+---
+
 ### GET `/api/payments/test-connection`
+Public diagnostic endpoint to verify backend Razorpay API key/secret configuration.
 
-Public endpoint (no auth). Useful in development to validate that the Razorpay API keys configured on the server are valid.
+---
 
-Response:
+## 8. Promotional Offers & Marquee Banner (`/api/offers`)
 
-- `200 OK` when the connection and credentials are valid. Example message: "Razorpay connection successful." 
-- `500` when the server fails to contact Razorpay or the credentials are invalid. Example message: "Razorpay connection failed. Check keys in configuration."
+Powers time-bounded promotional banner announcements and animated marquee tickers on the storefront.
 
-Example call:
+### GET `/api/offers/active`
+Public endpoint returning the currently active offer. If no offer is active within the current datetime window, returns `200 OK` with `data: null` so the frontend banner can cleanly dismiss.
 
-```bash
-curl http://localhost:5000/api/payments/test-connection
+**Success Response (`200 OK`):**
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "5c6d7e8f-9a0b-1c2d-3e4f-5a6b7c8d9e0f",
+    "message": "🎉 Weekend Flash Sale! Use code CRUISE15 for 15% off all customized prints!",
+    "startDate": "2026-09-01T00:00:00Z",
+    "endDate": "2026-09-10T23:59:59Z",
+    "isActive": true,
+    "createdAt": "2026-09-01T00:00:00Z",
+    "updatedAt": "2026-09-01T00:00:00Z"
+  }
+}
 ```
 
-## Category Endpoints
+---
 
-### GET `/api/categories`
+### GET `/api/offers`
+Admin only. Lists all promotional offers.
 
-Public endpoint returning all categories.
+---
 
-Example response:
+### GET `/api/offers/{id}`
+Admin only. Gets a specific offer by ID.
 
+---
+
+### POST `/api/offers`
+Admin only. Creates a new promotional offer.
+
+**Request Body:**
+```json
+{
+  "message": "🚀 Free shipping on orders over ₹999!",
+  "startDate": "2026-09-01T00:00:00Z",
+  "endDate": "2026-09-30T23:59:59Z",
+  "isActive": true
+}
+```
+
+---
+
+### PUT `/api/offers/{id}`
+Admin only. Updates an offer's message, date range, or active state.
+
+---
+
+### DELETE `/api/offers/{id}`
+Admin only. Permanently deletes an offer.
+
+---
+
+## 9. FCM Push Notifications & Device Tokens
+
+Cruise3D features browser push notifications powered by **Firebase Cloud Messaging (FCM)**.
+
+### Notification Routes Matrix
+| Method | Route | Access | Purpose |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/notification-tokens` | Authenticated | Register/upsert device FCM token |
+| `DELETE` | `/api/notification-tokens/{token}` | Public / Anonymous | Unregister FCM token |
+| `PATCH` | `/api/notification-tokens/{token}/mute` | Authenticated | Mute or unmute notifications |
+| `GET` | `/api/notifications/health` | Admin Only | Firebase Admin SDK health check |
+| `POST` | `/api/notifications/dev/test-admin-fcm` | Admin Only (Dev Only) | Send test push notification |
+
+### POST `/api/notification-tokens`
+Upserts a web browser device token for the current user. If the logged-in user is an `admin`, the token is automatically subscribed to the Firebase `admins` broadcast topic.
+
+**Request Body:**
+```json
+{
+  "token": "fcm-device-registration-token-string",
+  "platform": "web",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)..."
+}
+```
+
+---
+
+### DELETE `/api/notification-tokens/{token}`
+Public endpoint. Removes a device registration token and unsubscribes from topics on logout or permission revoke.
+
+---
+
+### PATCH `/api/notification-tokens/{token}/mute`
+Mutes notifications for a specific token without deleting it.
+
+**Request Body:**
+```json
+{
+  "muted": true
+}
+```
+
+---
+
+## 10. Media & Image Uploads (`/api/upload`)
+
+Direct-to-Cloudinary upload integration. The server generates a secure SHA-1 signature so browsers can upload large image assets directly to Cloudinary without burdening backend bandwidth.
+
+### GET `/api/upload/signature`
+Admin only (`Authorize(Roles = "admin")`).
+
+**Query Parameters:**
+- `folder` (`string`, default: `"cruise3d/products"`): Destination Cloudinary folder.
+- `source` (`string`, default: `"uw"`): Upload source identifier.
+- `timestamp` (`string`, optional): Unix timestamp.
+- `data` (`string`, optional): Additional query payload parameters.
+
+**Success Response (`200 OK`):**
+```json
+{
+  "cloudName": "cruise3d-cloud",
+  "apiKey": "123456789012345",
+  "timestamp": "1725712800",
+  "signature": "8a7c6b5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b",
+  "folder": "cruise3d/products",
+  "source": "uw"
+}
+```
+
+---
+
+## 11. Product Reviews & Ratings (`/api/reviews`)
+
+### GET `/api/reviews/product/{productId}`
+Public endpoint. Returns all published customer reviews for a given product.
+
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
   "message": "Success",
   "data": [
     {
-      "id": "4f6d5b2a-3f0a-4f3f-9d2f-1c2f3b8d2a11",
-      "name": "Miniatures",
-      "slug": "miniatures",
-      "iconUrl": "https://cdn.example.com/icons/miniatures.svg",
-      "sortOrder": 1
+      "id": "4a5b6c7d-8e9f-0a1b-2c3d-4e5f6a7b8c9d",
+      "customerName": "Jane Smith",
+      "rating": 5,
+      "comment": "Incredible print quality! The emerald color has a wonderful shine.",
+      "createdAt": "2026-09-02T16:20:00Z"
     }
   ]
 }
 ```
 
-### GET `/api/categories/{id}`
+---
 
-Public endpoint for one category.
+### POST `/api/reviews`
+Customer only (`Authorize(Roles = "customer")`). Submits a verified buyer review.
 
-Example response:
-
+**Request Body:**
 ```json
 {
-  "success": true,
-  "message": "Success",
-  "data": {
-    "id": "4f6d5b2a-3f0a-4f3f-9d2f-1c2f3b8d2a11",
-    "name": "Miniatures",
-    "slug": "miniatures",
-    "iconUrl": "https://cdn.example.com/icons/miniatures.svg",
-    "sortOrder": 1
-  }
+  "productId": "7b2d5a31-7e8c-4f1b-85ad-3cb6025dfa11",
+  "orderId": "e8f7a6b5-4c3d-2e1f-0a9b-8c7d6e5f4a3b",
+  "rating": 5,
+  "comment": "Exceeded expectations. Very durable and smooth joints."
 }
 ```
 
-### POST `/api/categories`
+---
 
-Admin only. Creates a category.
+### DELETE `/api/reviews/{reviewId}`
+Customer only. Deletes a review authored by the customer.
 
-Request body:
+---
 
-```json
-{
-  "name": "Miniatures",
-  "slug": "miniatures",
-  "iconUrl": "https://cdn.example.com/icons/miniatures.svg"
-}
-```
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Category created successfully.",
-  "data": {
-    "id": "4f6d5b2a-3f0a-4f3f-9d2f-1c2f3b8d2a11",
-    "name": "Miniatures",
-    "slug": "miniatures",
-    "iconUrl": "https://cdn.example.com/icons/miniatures.svg",
-    "sortOrder": 0
-  }
-}
-```
-
-### PUT `/api/categories/{id}`
-
-Admin only. Updates a category.
-
-Request body:
-
-```json
-{
-  "name": "Collectibles",
-  "slug": "collectibles",
-  "iconUrl": "https://cdn.example.com/icons/collectibles.svg"
-}
-```
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Category updated successfully.",
-  "data": {
-    "id": "4f6d5b2a-3f0a-4f3f-9d2f-1c2f3b8d2a11",
-    "name": "Collectibles",
-    "slug": "collectibles",
-    "iconUrl": "https://cdn.example.com/icons/collectibles.svg",
-    "sortOrder": 0
-  }
-}
-```
-
-### DELETE `/api/categories/{id}`
-
-Admin only. Deletes a category.
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Deleted successfully.",
-  "data": "Category deleted."
-}
-```
-
-## Admin Endpoints
+## 12. Admin Operations & Dashboard (`/api/admin`)
 
 ### GET `/api/admin/dashboard`
+Admin only (`Authorize(Roles = "admin")`). Retrieves top-level KPI analytics, aggregate sales volume, order counters, and low-inventory warnings.
 
-Admin only. Returns aggregate dashboard metrics.
-
-Example response:
-
+**Success Response (`200 OK`):**
 ```json
 {
   "success": true,
   "message": "Success",
   "data": {
-    "totalProducts": 25,
-    "totalOrders": 48,
-    "totalCustomers": 19,
-    "totalRevenue": 12450,
-    "pendingOrders": 6,
+    "totalProducts": 48,
+    "totalOrders": 312,
+    "totalCustomers": 189,
+    "totalRevenue": 245890.00,
+    "pendingOrders": 7,
     "lowStockProducts": [
       {
-        "id": "b6d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-        "title": "Dragon Miniature",
-        "stock": 4,
-        "sku": "DRAGON-001"
+        "id": "7b2d5a31-7e8c-4f1b-85ad-3cb6025dfa11",
+        "title": "Articulated Crystal Dragon",
+        "stock": 3,
+        "sku": "DRG-CRY-001"
       }
     ]
   }
 }
 ```
 
-## Upload Endpoints
+---
 
-### GET `/api/upload/signature`
+## 13. Placeholders & Stubs
 
-Admin only. Returns the Cloudinary upload signature payload for direct browser uploads.
+The following endpoints are registered placeholders in the codebase and return status stubs:
 
-Query parameters:
+### Testimonials (`/api/testimonials`)
+- `GET /api/testimonials`: Returns empty array `[]`.
+- `POST /api/testimonials`: Returns `201 Created`.
+- `PUT /api/testimonials/{id}/approve`: Returns `204 NoContent`.
 
-- `folder` - optional upload folder, defaults to `cruise3d/products`
-
-Example request:
-
-```http
-GET /api/upload/signature?folder=cruise3d/products
-```
-
-Example response:
-
-```json
-{
-  "cloudName": "your-cloud-name",
-  "apiKey": "your-api-key",
-  "timestamp": "1722250800",
-  "signature": "6c4b7f2f7b0a1a2f8f2e3d5c4b1a0f9e7d6c5b4a",
-  "folder": "cruise3d/products"
-}
-```
-
-Frontend usage notes:
-
-- The frontend sends the `timestamp`, `folder`, and `signature` to Cloudinary.
-- The server does not return `apiSecret`.
-- Keep this endpoint restricted to admin users.
-
-## Reviews Endpoints
-
-### GET `/api/reviews/product/{productId}`
-
-Public endpoint to read reviews for a product.
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Success",
-  "data": [
-    {
-      "id": "3a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
-      "productId": "b6d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-      "customerId": "f2e9d4a1-1d2c-4f5a-8d3a-0c4d3f2a9b11",
-      "orderId": "8f6d5a8e-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-      "rating": 5,
-      "comment": "Great quality and detail.",
-      "createdAt": "2026-07-29T12:00:00Z"
-    }
-  ]
-}
-```
-
-### POST `/api/reviews`
-
-Customer only. Creates a review.
-
-Request body:
-
-```json
-{
-  "productId": "b6d9b1e8-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-  "orderId": "8f6d5a8e-4f7b-4a6e-a6c3-8f3d5d1c1f11",
-  "rating": 5,
-  "comment": "Great quality and detail."
-}
-```
-
-Field notes:
-
-- `productId` required
-- `orderId` required
-- `rating` required
-- `comment` optional
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Review submitted successfully.",
-  "data": {
-    "id": "3a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
-    "rating": 5,
-    "comment": "Great quality and detail."
-  }
-}
-```
-
-### DELETE `/api/reviews/{reviewId}`
-
-Customer only. Deletes the current user's review.
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Review deleted.",
-  "data": "Success"
-}
-```
-
-## Offer Endpoints
-
-Manages promotional offer messages displayed in the storefront banner.
-
-### GET `/api/offers/active`
-
-Public endpoint. Returns the currently active offer (the one whose `isActive` flag is true and whose `startDate`/`endDate` window includes the current time). If no offer is active, the response is `200 OK` with `data: null` so the storefront banner can render nothing cleanly.
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Success",
-  "data": {
-    "id": "3a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
-    "message": "Flat 20% off on all 3D printed models — limited time!",
-    "startDate": "2026-08-01T00:00:00Z",
-    "endDate": "2026-08-31T23:59:59Z",
-    "isActive": true,
-    "createdAt": "2026-08-01T10:15:00Z",
-    "updatedAt": "2026-08-01T10:15:00Z"
-  }
-}
-```
-
-### GET `/api/offers`
-
-Admin only. Lists all offers (active and inactive).
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Success",
-  "data": [
-    {
-      "id": "3a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
-      "message": "Flat 20% off on all 3D printed models — limited time!",
-      "startDate": "2026-08-01T00:00:00Z",
-      "endDate": "2026-08-31T23:59:59Z",
-      "isActive": true,
-      "createdAt": "2026-08-01T10:15:00Z",
-      "updatedAt": "2026-08-01T10:15:00Z"
-    }
-  ]
-}
-```
-
-### GET `/api/offers/{id}`
-
-Admin only. Returns a single offer by id.
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Success",
-  "data": {
-    "id": "3a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
-    "message": "Flat 20% off on all 3D printed models — limited time!",
-    "startDate": "2026-08-01T00:00:00Z",
-    "endDate": "2026-08-31T23:59:59Z",
-    "isActive": true,
-    "createdAt": "2026-08-01T10:15:00Z",
-    "updatedAt": "2026-08-01T10:15:00Z"
-  }
-}
-```
-
-### POST `/api/offers`
-
-Admin only. Creates a new offer.
-
-Request body:
-
-```json
-{
-  "message": "Flat 20% off on all 3D printed models — limited time!",
-  "startDate": "2026-08-01T00:00:00Z",
-  "endDate": "2026-08-31T23:59:59Z",
-  "isActive": true
-}
-```
-
-Field rules:
-
-- `message`: required, max 1000 characters, must not be blank
-- `startDate`: required, ISO-8601 datetime (UTC preferred; naive values are coerced to UTC)
-- `endDate`: required, must be later than `startDate`
-- `isActive`: optional, defaults to `true`
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Offer created successfully.",
-  "data": {
-    "id": "3a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
-    "message": "Flat 20% off on all 3D printed models — limited time!",
-    "startDate": "2026-08-01T00:00:00Z",
-    "endDate": "2026-08-31T23:59:59Z",
-    "isActive": true,
-    "createdAt": "2026-08-01T10:15:00Z",
-    "updatedAt": "2026-08-01T10:15:00Z"
-  }
-}
-```
-
-### PUT `/api/offers/{id}`
-
-Admin only. Updates an existing offer. All fields are optional; only the ones provided are applied. The `endDate` must still be later than `startDate` after the merge.
-
-Request body:
-
-```json
-{
-  "message": "Extended: Flat 25% off on all 3D printed models!",
-  "endDate": "2026-09-15T23:59:59Z",
-  "isActive": true
-}
-```
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Offer updated successfully.",
-  "data": {
-    "id": "3a6c2e4b-5d7a-4b7f-8b1d-3e6c2c4d1a11",
-    "message": "Extended: Flat 25% off on all 3D printed models!",
-    "startDate": "2026-08-01T00:00:00Z",
-    "endDate": "2026-09-15T23:59:59Z",
-    "isActive": true,
-    "createdAt": "2026-08-01T10:15:00Z",
-    "updatedAt": "2026-08-05T09:00:00Z"
-  }
-}
-```
-
-### DELETE `/api/offers/{id}`
-
-Admin only. Deletes the offer with the given id.
-
-Example response:
-
-```json
-{
-  "success": true,
-  "message": "Offer deleted successfully.",
-  "data": "Offer deleted."
-}
-```
-
-## Placeholder Endpoints
-
-These controllers currently return stubbed or placeholder responses and are not fully implemented.
-
-### GET `/api/Testimonials`
-
-Returns an empty array.
-
-### POST `/api/Testimonials`
-
-Creates and echoes the submitted body.
-
-### PUT `/api/Testimonials/{id}/approve`
-
-Returns `204 No Content`.
-
-### POST `/api/Newsletter/subscribe`
-
-Returns:
-
-```json
-{
-  "message": "Not implemented"
-}
-```
-
-### POST `/api/Newsletter/confirm`
-
-Returns:
-
-```json
-{
-  "message": "Not implemented"
-}
-```
-
-## Frontend Integration Notes
-
-- Store the JWT from login/register and send it in the `Authorization` header.
-- Treat `customer` and `admin` roles separately in the UI.
-- For product lists, use the `items`, `total`, `page`, and `totalPages` fields to render pagination.
-- For cart and order flows, keep the order of operations:
-  1. Add items to cart
-  2. Select shipping address
-  3. Complete payment on the frontend
-  4. Submit `paymentId` when calling `POST /api/orders`
-- For `custom` products, the frontend should pass a valid `productColorId` when adding to cart.
-
-## Notes On Data Shapes
-
-- Product detail responses include category, colors, images, specs, average rating, and review count.
-- Cart responses include live pricing and stock availability.
-- Order responses include frozen price and color snapshots from the checkout moment.
-- Category and review endpoints currently return entity-shaped payloads, so the frontend should not assume a separate DTO wrapper beyond the shared `ApiResponse<T>` envelope.
-
-## Migrations & Docker
-
-Notes about recent changes:
-
-- The server now applies EF Core migrations on startup using db.Database.Migrate(). The previous fallback to EnsureCreated() was removed so migration mismatches will fail fast and must be resolved by creating/applying migrations.
-- A migration named AddPaymentIntent was added to introduce the payment intent changes (nullable order id, cart_snapshot column, and status default/check constraint including `pending`). Ensure this migration file is present in `Migrations/` and committed.
-- A development-only endpoint `GET /api/payments/test-connection` is available to validate Razorpay API keys from configuration.
-
-Running in Docker:
-
-- If you run the API inside Docker, you should rebuild the image and restart the container so the running code matches the repository changes. Example commands (PowerShell):
-
-  - Rebuild and start with docker-compose (recommended):
-
-    docker-compose up -d --build
-
-  - Or rebuild a single container image and run:
-
-    docker build -t cruise3d-api .
-    docker run -e ASPNETCORE_ENVIRONMENT=Development -p 8080:80 --name cruise3d-api cruise3d-api
-
-- The application will attempt to run migrations on startup. That requires the database to be reachable from the container and the DB user to have schema ALTER privileges. If migrations cannot be applied at startup the container will fail (this is intentional to avoid masking schema drift).
-
-Post-deploy checks:
-
-- After restart, check the `__EFMigrationsHistory` table or run `dotnet ef migrations list` from your build host to verify that AddPaymentIntent is applied.
-- Call the payments test endpoint to validate Razorpay keys:
-
-  curl http://<host>:<port>/api/payments/test-connection
-
-Kerberos/GSSAPI warning:
-
-- You may see a warning about `libgssapi_krb5.so.2` when starting the app in some Linux environments. This is harmless unless you use Kerberos/GSSAPI authentication to Postgres. To remove the warning, install the OS package that provides libgssapi (e.g., krb5-user/heimdal packages depending on your base image).
-
+### Newsletter (`/api/newsletter`)
+- `POST /api/newsletter/subscribe`: Returns `{ "message": "Not implemented" }`.
+- `POST /api/newsletter/confirm`: Returns `{ "message": "Not implemented" }`.
