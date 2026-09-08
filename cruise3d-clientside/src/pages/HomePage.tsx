@@ -31,13 +31,6 @@ const heroSlides = [
   },
 ];
 
-const trustBadges = [
-  { icon: 'local_shipping', label: 'Free Express Shipping' },
-  { icon: 'verified', label: 'Micron Precision' },
-  { icon: 'lock', label: 'Encrypted Checkout' },
-  { icon: 'payments', label: 'Flexible Payment' },
-];
-
 const featureSteps = [
   {
     icon: 'edit_note',
@@ -223,41 +216,6 @@ export default function HomePage() {
                   activeHeroSlide === index ? 'w-8 bg-white' : 'w-2.5 bg-white/45 hover:bg-white/80'
                 }`}
               />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Trust Badges */}
-      <section 
-        className="bg-white py-12 border-b"
-        style={{ borderColor: colors.border.DEFAULT }}
-      >
-        <div className="mx-auto max-w-[1280px] px-6">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {trustBadges.map((badge) => (
-              <div
-                key={badge.label}
-                className="flex items-center gap-4 rounded-2xl p-5 border"
-                style={{
-                  backgroundColor: colors.surface.container,
-                  borderColor: colors.border.light,
-                  boxShadow: shadows.DEFAULT,
-                }}
-              >
-                <div 
-                  className="flex h-12 w-12 items-center justify-center rounded-xl"
-                  style={{
-                    backgroundColor: colors.surface.low,
-                    color: colors.primary.DEFAULT,
-                  }}
-                >
-                  <span className="material-symbols-outlined text-2xl">{badge.icon}</span>
-                </div>
-                <span className="text-sm font-semibold" style={{ color: colors.text.primary }}>
-                  {badge.label}
-                </span>
-              </div>
             ))}
           </div>
         </div>
