@@ -42,6 +42,9 @@ public class ExceptionMiddleware
                 var m when m.Contains("unauthorized", StringComparison.OrdinalIgnoreCase) => (int)HttpStatusCode.Unauthorized,
                 var m when m.Contains("already exists", StringComparison.OrdinalIgnoreCase) => (int)HttpStatusCode.Conflict,
                 var m when m.Contains("already registered", StringComparison.OrdinalIgnoreCase) => (int)HttpStatusCode.Conflict,
+                var m when m.Contains("already reviewed", StringComparison.OrdinalIgnoreCase) => (int)HttpStatusCode.Conflict,
+                var m when m.Contains("only review products", StringComparison.OrdinalIgnoreCase) => (int)HttpStatusCode.BadRequest,
+                var m when m.Contains("only review products after delivery", StringComparison.OrdinalIgnoreCase) => (int)HttpStatusCode.BadRequest,
                 var m when m.Contains("invalid", StringComparison.OrdinalIgnoreCase) => (int)HttpStatusCode.BadRequest,
                 var m when m.Contains("amount mismatch", StringComparison.OrdinalIgnoreCase) => (int)HttpStatusCode.BadRequest,
                 _ => (int)HttpStatusCode.InternalServerError
@@ -64,4 +67,3 @@ public class ExceptionMiddleware
             await context.Response.WriteAsync(JsonSerializer.Serialize(response, options));
         }
 }
-

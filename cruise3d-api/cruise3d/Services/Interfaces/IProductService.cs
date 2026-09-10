@@ -5,7 +5,7 @@ namespace cruise3d.API.Services.Interfaces;
 public interface IProductService
 {
     // Customer facing
-    Task<(IEnumerable<ProductListItemDto> Items, int Total)> GetAllAsync(
+    Task<(IEnumerable<ProductListItemDto> Items, int Total)> GetCustomerProductsAsync(
         Guid? categoryId,
         string? search,
         decimal? minPrice,
@@ -14,7 +14,16 @@ public interface IProductService
         int page,
         int pageSize);
 
-    Task<ProductResponseDto> GetByIdAsync(Guid id);
+    Task<(IEnumerable<ProductListItemDto> Items, int Total)> GetAdminProductsAsync(
+        Guid? categoryId,
+        string? search,
+        decimal? minPrice,
+        decimal? maxPrice,
+        string? sortBy,
+        int page,
+        int pageSize);
+    Task<ProductResponseDto> GetCustomerByIdAsync(Guid id);
+    Task<ProductResponseDto> GetAdminByIdAsync(Guid id);
     Task<IEnumerable<ProductListItemDto>> GetFeaturedAsync();
     Task<IEnumerable<ProductListItemDto>> GetBestsellersAsync();
 

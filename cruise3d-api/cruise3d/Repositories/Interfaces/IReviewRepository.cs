@@ -1,4 +1,5 @@
 using cruise3d.Models.Entities;
+using cruise3d.API.Models.DTOs.Review;
 
 namespace cruise3d.API.Repositories.Interfaces
 {
@@ -7,7 +8,7 @@ namespace cruise3d.API.Repositories.Interfaces
         Task<(IEnumerable<Review> Items, int Total)> GetAllAsync(
             Guid? productId, int page, int pageSize);
         Task<Review?> GetByIdAsync(Guid id);
-        Task<IEnumerable<Review>> GetByProductIdAsync(Guid productId);
+        Task<IEnumerable<ReviewResponseDto>> GetByProductIdAsync(Guid productId);
         Task<IEnumerable<Review>> GetByCustomerIdAsync(Guid customerId);
         Task<Review> CreateAsync(Review review);
         Task UpdateAsync(Review review);

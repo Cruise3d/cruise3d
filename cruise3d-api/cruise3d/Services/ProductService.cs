@@ -9,29 +9,52 @@ public class ProductService : IProductService
 {
     private readonly IProductRepository _products;
     private readonly IProductImageRepository _images;
+    private readonly ILogger<ProductService> _logger;
 
-    public ProductService(IProductRepository products, IProductImageRepository images)
+    public ProductService(
+        IProductRepository products,
+        IProductImageRepository images,
+        ILogger<ProductService> logger)
     {
         _products = products;
         _images = images;
+        _logger = logger;
     }
 
     // ─── GET ALL (with filters, search, pagination) ───────────────────────────
-    public async Task<(IEnumerable<ProductListItemDto> Items, int Total)> GetAllAsync(
+    public async Task<(IEnumerable<ProductListItemDto> Items, int Total)> GetCustomerProductsAsync(
         Guid? categoryId, string? search, decimal? minPrice, decimal? maxPrice,
         string? sortBy, int page, int pageSize)
     {
-        var (items, total) = await _products.GetAllAsync(
+        var (items, total) = await _products.GetCustomerProductsAsync(
             categoryId, search, minPrice, maxPrice, sortBy, page, pageSize);
 
         var dtos = items.Select(MapToListItem);
         return (dtos, total);
     }
 
-    // ─── GET BY ID ────────────────────────────────────────────────────────────
-    public async Task<ProductResponseDto> GetByIdAsync(Guid id)
+    public async Task<(IEnumerable<ProductListItemDto> Items, int Total)> GetAdminProductsAsync(
+        Guid? categoryId, string? search, decimal? minPrice, decimal? maxPrice,
+        string? sortBy, int page, int pageSize)
     {
-        var product = await _products.GetByIdWithDetailsAsync(id)
+        var (items, total) = await _products.GetAdminProductsAsync(
+            categoryId, search, minPrice, maxPrice, sortBy, page, pageSize);
+
+        return (items.Select(MapToListItem), total);
+    }
+
+    // ─── GET BY ID ────────────────────────────────────────────────────────────
+    public async Task<ProductResponseDto> GetCustomerByIdAsync(Guid id)
+    {
+        var product = await _products.GetCustomerByIdWithDetailsAsync(id)
+            ?? throw new Exception("Product not found.");
+
+        return MapToResponse(product);
+    }
+
+    public async Task<ProductResponseDto> GetAdminByIdAsync(Guid id)
+    {
+        var product = await _products.GetAdminByIdWithDetailsAsync(id)
             ?? throw new Exception("Product not found.");
 
         return MapToResponse(product);
@@ -139,6 +162,7 @@ public class ProductService : IProductService
     {
         var product = await _products.GetByIdAsync(id)
             ?? throw new Exception("Product not found.");
+        var oldIsActive = product.IsActive;
 
         // Check SKU uniqueness if changed
         if (dto.Sku != null && dto.Sku != product.Sku)
@@ -162,6 +186,12 @@ public class ProductService : IProductService
         if (dto.IsFeatured   != null) product.IsFeatured        = dto.IsFeatured.Value;
         if (dto.IsBestseller != null) product.IsBestseller      = dto.IsBestseller.Value;
         if (dto.IsActive     != null) product.IsActive          = dto.IsActive.Value;
+
+        _logger.LogInformation(
+            "Updating product {ProductId}: IsActive {OldIsActive} -> {NewIsActive}",
+            id,
+            oldIsActive,
+            product.IsActive);
 
         if (dto.Images != null)
         {
@@ -194,10 +224,17 @@ public class ProductService : IProductService
     {
         var product = await _products.GetByIdAsync(id)
             ?? throw new Exception("Product not found.");
+        var oldIsActive = product.IsActive;
 
-        // Soft delete — just marks IsActive = false
-        // Product stays in DB so old orders still reference it
-        await _products.DeleteAsync(id);
+        // Keep the row so historical order items and reviews retain their product FK.
+        product.IsActive = false;
+        product.UpdatedAt = DateTime.UtcNow;
+        _logger.LogInformation(
+            "Deleting product {ProductId}: IsActive {OldIsActive} -> {NewIsActive}",
+            id,
+            oldIsActive,
+            product.IsActive);
+        await _products.UpdateAsync(product);
     }
 
     // ─── SKU EXISTS ───────────────────────────────────────────────────────────
@@ -276,4 +313,3 @@ public class ProductService : IProductService
         ReviewCount    = p.Reviews.Count
     };
 }
-

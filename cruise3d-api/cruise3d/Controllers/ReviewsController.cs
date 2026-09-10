@@ -1,5 +1,6 @@
 using cruise3d.API.Helpers;
 using cruise3d.API.Models.DTOs.Common;
+using cruise3d.API.Models.DTOs.Review;
 using cruise3d.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,7 @@ public class ReviewsController : ControllerBase
     public async Task<IActionResult> GetByProduct(Guid productId)
     {
         var result = await _reviews.GetByProductAsync(productId);
-        return Ok(ApiResponse<object>.Ok(result));
+        return Ok(ApiResponse<IEnumerable<ReviewResponseDto>>.Ok(result));
     }
 
     // POST api/reviews
@@ -33,7 +34,9 @@ public class ReviewsController : ControllerBase
         var customerId = JwtHelper.GetUserId(User);
         var result = await _reviews.CreateAsync(
             customerId, dto.ProductId, dto.OrderId, dto.Rating, dto.Comment);
-        return Ok(ApiResponse<object>.Ok(result, "Review submitted successfully."));
+        return Ok(ApiResponse<ReviewResponseDto>.Ok(
+            result,
+            "Review submitted successfully."));
     }
 
     // DELETE api/reviews/{reviewId}
@@ -55,4 +58,3 @@ public class CreateReviewDto
     public int     Rating    { get; set; }
     public string? Comment   { get; set; }
 }
-

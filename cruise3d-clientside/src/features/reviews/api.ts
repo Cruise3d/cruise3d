@@ -1,6 +1,6 @@
 import axiosClient from '@/api/axiosClient';
 
-import type { Review } from './types';
+import type { CreateReviewPayload, Review } from './types';
 
 /**
  * Fetch all reviews for a product.
@@ -8,4 +8,8 @@ import type { Review } from './types';
  */
 export async function getReviewsByProduct(productId: string): Promise<Review[]> {
   return axiosClient.get<Review[]>(`/reviews/product/${productId}`);
+}
+
+export async function createReview(payload: CreateReviewPayload): Promise<Review> {
+  return axiosClient.post<Review, CreateReviewPayload>('/reviews', payload);
 }

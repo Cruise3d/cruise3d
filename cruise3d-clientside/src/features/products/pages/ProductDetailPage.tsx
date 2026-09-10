@@ -7,6 +7,9 @@ import { ProductGrid } from '../components/ProductGrid';
 import { Button } from '../../../components/ui/Button';
 import { useCartStore } from '../../cart/useCartStore';
 import { useProductReviews } from '../../reviews/hooks/useProductReviews';
+import { ReviewForm } from '../../reviews/components/ReviewForm';
+import { useMyOrders } from '../../orders/hooks/useMyOrders';
+import { useAuthStore } from '../../../app/store/authStore';
 import type { Review } from '../../reviews/types';
 import { theme } from '../../../styles/theme';
 import type { Product } from '../types';
@@ -24,23 +27,26 @@ function formatReviewDate(value: string): string {
 }
 
 function reviewerName(review: Review): string {
-  const first = review.customer?.firstName?.trim();
-  const last = review.customer?.lastName?.trim();
-  if (first || last) return [first, last].filter(Boolean).join(' ');
-  return 'Anonymous customer';
+  return review.customerName?.trim() || 'Anonymous customer';
 }
 
 function reviewerInitials(review: Review): string {
-  const first = review.customer?.firstName?.[0] ?? '';
-  const last = review.customer?.lastName?.[0] ?? '';
-  const combined = `${first}${last}`.toUpperCase();
-  return combined || '?';
+  const initials = (review.customerName ?? '')
+    .trim()
+    .split(/\s+/)
+    .map((part) => part[0] ?? '')
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+  return initials || '?';
 }
 
 export default function ProductDetailPage() {
   const { productId } = useParams<{ productId: string }>();
   const addItem = useCartStore((state) => state.addItem);
   const { colors, shadows } = theme;
+  const { isAuthenticated, user } = useAuthStore();
+  const isCustomer = isAuthenticated && user?.role === 'customer';
 
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -55,6 +61,7 @@ export default function ProductDetailPage() {
 
   // Reviews
   const reviewsApi = useProductReviews(productId);
+  const ordersApi = useMyOrders(isCustomer);
   const { isLoading: reviewsLoading, refetch: reviewsRefetch } = reviewsApi;
 
   useEffect(() => {
@@ -488,6 +495,9 @@ export default function ProductDetailPage() {
             {activeTab === 'reviews' && (
               <ReviewsTab
                 reviewsApi={reviewsApi}
+                productId={product.id}
+                ordersApi={ordersApi}
+                isAuthenticated={isCustomer}
                 averageRating={product.rating}
                 reviewCount={product.reviewCount}
               />
@@ -638,11 +648,21 @@ function SpecsTab({ product }: { product: Product }) {
 
 interface ReviewsTabProps {
   reviewsApi: ReturnType<typeof useProductReviews>;
+  productId: string;
+  ordersApi: ReturnType<typeof useMyOrders>;
+  isAuthenticated: boolean;
   averageRating: number;
   reviewCount: number;
 }
 
-function ReviewsTab({ reviewsApi, averageRating, reviewCount }: ReviewsTabProps) {
+function ReviewsTab({
+  reviewsApi,
+  productId,
+  ordersApi,
+  isAuthenticated,
+  averageRating,
+  reviewCount,
+}: ReviewsTabProps) {
   const { colors } = theme;
   const { reviews, isLoading, error, refetch } = reviewsApi;
 
@@ -685,6 +705,14 @@ function ReviewsTab({ reviewsApi, averageRating, reviewCount }: ReviewsTabProps)
           <p>Average across all purchases of this product.</p>
         </div>
       </div>
+
+      <ReviewForm
+        productId={productId}
+        orders={ordersApi.orders}
+        isLoadingOrders={ordersApi.isLoading}
+        isAuthenticated={isAuthenticated}
+        onSubmitted={refetch}
+      />
 
       <div className="min-h-[160px]">
         {/* ✅ Fix: Check loading first */}

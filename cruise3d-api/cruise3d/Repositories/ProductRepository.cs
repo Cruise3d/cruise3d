@@ -12,18 +12,44 @@ namespace cruise3d.API.Repositories
     public class ProductRepository : IProductRepository
     {
         private readonly AppDbContext _db;
+        private readonly ILogger<ProductRepository> _logger;
 
-        public ProductRepository(AppDbContext db) => _db = db;
+        public ProductRepository(AppDbContext db, ILogger<ProductRepository> logger)
+        {
+            _db = db;
+            _logger = logger;
+        }
 
-        public async Task<(IEnumerable<Product> Items, int Total)> GetAllAsync(
+        public Task<(IEnumerable<Product> Items, int Total)> GetCustomerProductsAsync(
             Guid? categoryId, string? search, decimal? minPrice, decimal? maxPrice,
             string? sortBy, int page, int pageSize)
         {
-            var query = _db.Products
+            return GetProductsAsync(
+                categoryId, search, minPrice, maxPrice, sortBy, page, pageSize,
+                includeInactive: false);
+        }
+
+        public Task<(IEnumerable<Product> Items, int Total)> GetAdminProductsAsync(
+            Guid? categoryId, string? search, decimal? minPrice, decimal? maxPrice,
+            string? sortBy, int page, int pageSize)
+        {
+            return GetProductsAsync(
+                categoryId, search, minPrice, maxPrice, sortBy, page, pageSize,
+                includeInactive: true);
+        }
+
+        private async Task<(IEnumerable<Product> Items, int Total)> GetProductsAsync(
+            Guid? categoryId, string? search, decimal? minPrice, decimal? maxPrice,
+            string? sortBy, int page, int pageSize, bool includeInactive)
+        {
+            IQueryable<Product> query = _db.Products
                 .Include(p => p.Images.Where(i => i.IsPrimary))
                 .Include(p => p.Category)
                 .Include(p => p.Reviews)
                 .AsQueryable();
+
+            if (!includeInactive)
+                query = query.Where(p => p.IsActive);
 
             if (categoryId.HasValue)
                 query = query.Where(p => p.CategoryId == categoryId);
@@ -49,7 +75,10 @@ namespace cruise3d.API.Repositories
                 _ => query.OrderByDescending(p => p.CreatedAt)
             };
 
-            var total = await query.CountAsync();
+                if (!includeInactive)
+                    _logger.LogDebug("Customer product listing SQL: {Sql}", query.ToQueryString());
+
+                var total = await query.CountAsync();
             var items = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -65,16 +94,30 @@ namespace cruise3d.API.Repositories
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task<Product?> GetByIdWithDetailsAsync(Guid id)
+        public Task<Product?> GetCustomerByIdWithDetailsAsync(Guid id)
         {
-            return await _db.Products
+            return GetByIdWithDetailsAsync(id, includeInactive: false);
+        }
+
+        public Task<Product?> GetAdminByIdWithDetailsAsync(Guid id)
+        {
+            return GetByIdWithDetailsAsync(id, includeInactive: true);
+        }
+
+        private async Task<Product?> GetByIdWithDetailsAsync(Guid id, bool includeInactive)
+        {
+            IQueryable<Product> query = _db.Products
                 .Include(p => p.Images)
                 .Include(p => p.Colors)
                 .Include(p => p.Specs)
                 .Include(p => p.Category)
                 .Include(p => p.Reviews)
-                .ThenInclude(r => r.Customer)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .ThenInclude(r => r.Customer);
+
+            if (!includeInactive)
+                query = query.Where(p => p.IsActive);
+
+            return await query.FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<IEnumerable<Product>> GetFeaturedAsync()
@@ -125,7 +168,8 @@ namespace cruise3d.API.Repositories
             var product = await _db.Products.FindAsync(id);
             if (product != null)
             {
-                _db.Products.Remove(product);
+                product.IsActive = false;
+                product.UpdatedAt = DateTime.UtcNow;
                 await _db.SaveChangesAsync();
             }
         }

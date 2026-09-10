@@ -1,3 +1,4 @@
+using cruise3d.API.Models.DTOs.Review;
 using cruise3d.Models.Entities;
 using cruise3d.API.Repositories.Interfaces;
 using cruise3d.API.Services.Interfaces;
@@ -20,10 +21,10 @@ public class ReviewService : IReviewService
         _products = products;
     }
 
-    public async Task<IEnumerable<Review>> GetByProductAsync(Guid productId)
+    public async Task<IEnumerable<ReviewResponseDto>> GetByProductAsync(Guid productId)
         => await _reviews.GetByProductIdAsync(productId);
 
-    public async Task<Review> CreateAsync(Guid customerId, Guid productId,
+    public async Task<ReviewResponseDto> CreateAsync(Guid customerId, Guid productId,
         Guid orderId, int rating, string? comment)
     {
         // 1. Validate product exists
@@ -31,7 +32,7 @@ public class ReviewService : IReviewService
             ?? throw new Exception("Product not found.");
 
         // 2. Validate order belongs to customer and contains this product
-        var order = await _orders.GetByIdAsync(orderId)
+        var order = await _orders.GetByIdWithItemsAsync(orderId)
             ?? throw new Exception("Order not found.");
 
         if (order.CustomerId != customerId)
@@ -42,7 +43,7 @@ public class ReviewService : IReviewService
             throw new Exception("You can only review products you have purchased.");
 
         // 3. Check order is delivered
-        if (order.Status != "delivered")
+        if (!string.Equals(order.Status, "delivered", StringComparison.OrdinalIgnoreCase))
             throw new Exception("You can only review products after delivery.");
 
         // 4. Check not already reviewed
@@ -62,7 +63,18 @@ public class ReviewService : IReviewService
             CreatedAt  = DateTime.UtcNow
         };
 
-        return await _reviews.CreateAsync(review);
+        var created = await _reviews.CreateAsync(review);
+
+        return new ReviewResponseDto
+        {
+            Id = created.Id,
+            ProductId = created.ProductId,
+            CustomerId = created.CustomerId,
+            OrderId = created.OrderId,
+            Rating = created.Rating,
+            Comment = created.Comment,
+            CreatedAt = created.CreatedAt
+        };
     }
 
     public async Task DeleteAsync(Guid reviewId, Guid customerId)

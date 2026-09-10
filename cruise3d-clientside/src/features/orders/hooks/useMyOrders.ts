@@ -10,12 +10,15 @@ export interface UseMyOrdersResult {
   refetch: () => Promise<void>;
 }
 
-export function useMyOrders(): UseMyOrdersResult {
+
+
+export function useMyOrders(enabled = true): UseMyOrdersResult {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
 
   const refetch = useCallback(async () => {
+    if (!enabled) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -28,10 +31,10 @@ export function useMyOrders(): UseMyOrdersResult {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
-    refetch();
+    void refetch();
   }, [refetch]);
 
   return { orders, isLoading, error, refetch };

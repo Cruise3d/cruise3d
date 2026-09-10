@@ -10,10 +10,12 @@ export interface Review {
   rating: number;
   comment: string | null;
   createdAt: string;
-  customer?: {
-    id?: string;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-  } | null;
+  customerName?: string | null;
+}
+
+export interface CreateReviewPayload {
+  productId: string;
+  orderId: string;
+  rating: number;
+  comment?: string;
 }

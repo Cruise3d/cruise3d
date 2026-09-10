@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using cruise3d.Models.Entities;
+using cruise3d.API.Models.DTOs.Review;
 using cruise3d.API.Repositories.Interfaces;
 using cruise3d.API.Data;
 using Microsoft.EntityFrameworkCore;
@@ -45,12 +46,22 @@ namespace cruise3d.API.Repositories
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
 
-        public async Task<IEnumerable<Review>> GetByProductIdAsync(Guid productId)
+        public async Task<IEnumerable<ReviewResponseDto>> GetByProductIdAsync(Guid productId)
         {
             return await _db.Reviews
-                .Include(r => r.Customer)
                 .Where(r => r.ProductId == productId)
                 .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new ReviewResponseDto
+                {
+                    Id = r.Id,
+                    ProductId = r.ProductId,
+                    CustomerId = r.CustomerId,
+                    OrderId = r.OrderId,
+                    Rating = r.Rating,
+                    Comment = r.Comment,
+                    CreatedAt = r.CreatedAt,
+                    CustomerName = r.Customer.Name
+                })
                 .ToListAsync();
         }
 

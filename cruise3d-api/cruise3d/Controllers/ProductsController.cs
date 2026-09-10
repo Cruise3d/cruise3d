@@ -28,8 +28,11 @@ public class ProductsController : ControllerBase
         [FromQuery] int      page     = 1,
         [FromQuery] int      pageSize = 12)
     {
-        var (items, total) = await _products.GetAllAsync(
-            categoryId, search, minPrice, maxPrice, sortBy, page, pageSize);
+        var (items, total) = User.IsInRole("admin")
+            ? await _products.GetAdminProductsAsync(
+                categoryId, search, minPrice, maxPrice, sortBy, page, pageSize)
+            : await _products.GetCustomerProductsAsync(
+                categoryId, search, minPrice, maxPrice, sortBy, page, pageSize);
 
         // Return pagination metadata alongside data
         var result = new
@@ -67,7 +70,9 @@ public class ProductsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var result = await _products.GetByIdAsync(id);
+        var result = User.IsInRole("admin")
+            ? await _products.GetAdminByIdAsync(id)
+            : await _products.GetCustomerByIdAsync(id);
         return Ok(ApiResponse<ProductResponseDto>.Ok(result));
     }
 
@@ -105,4 +110,3 @@ public class ProductsController : ControllerBase
         return Ok(ApiResponse<string>.Ok("Product deleted.", "Product deleted successfully."));
     }
 }
-
