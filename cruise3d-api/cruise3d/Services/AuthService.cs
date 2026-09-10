@@ -111,6 +111,38 @@ public class AuthService : IAuthService
         return BuildAuthResponse(user);
     }
 
+    // ─── UPDATE PROFILE ─────────────────────────────────────────────────────
+    public async Task<AuthResponseDto> UpdateProfileAsync(Guid userId, UpdateProfileDto dto)
+    {
+        var user = await _users.GetByIdAsync(userId)
+            ?? throw new Exception("User not found.");
+
+        var firstName = dto.FirstName.Trim();
+        var lastName = dto.LastName.Trim();
+        var email = dto.Email.Trim().ToLowerInvariant();
+        var phone = string.IsNullOrWhiteSpace(dto.Phone)
+            ? null
+            : dto.Phone.Trim();
+
+        if (string.IsNullOrWhiteSpace(firstName))
+            throw new Exception("First name is required.");
+
+        if (string.IsNullOrWhiteSpace(lastName))
+            throw new Exception("Last name is required.");
+
+        if (await _users.EmailExistsAsync(email, userId))
+            throw new Exception("Email is already registered.");
+
+        user.Name = $"{firstName} {lastName}";
+        user.Email = email;
+        user.Phone = phone;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _users.UpdateAsync(user);
+
+        return BuildAuthResponse(user);
+    }
+
     // ─── VERIFY EMAIL ────────────────────────────────────────────────────────
     public async Task VerifyEmailAsync(string token)
     {
@@ -201,6 +233,7 @@ public class AuthService : IAuthService
             Name            = user.Name,
             Email           = user.Email,
             Role            = user.Role,
+            Phone           = user.Phone,
             IsEmailVerified = user.IsEmailVerified
         };
     }

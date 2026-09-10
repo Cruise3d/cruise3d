@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
+import { submitContactMessage } from '../features/contact/api';
 
 type ContactForm = {
   fullName: string;
@@ -60,20 +61,47 @@ export default function ContactPage() {
   const [form, setForm] = useState<ContactForm>(initialForm);
   const [errors, setErrors] = useState<Partial<Record<keyof ContactForm, string>>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleChange = (field: keyof ContactForm, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
     if (errors[field]) setErrors((current) => ({ ...current, [field]: undefined }));
     if (isSubmitted) setIsSubmitted(false);
+    if (submitError) setSubmitError(null);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors = validateForm(form);
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length === 0) {
+
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      await submitContactMessage({
+        fullName: form.fullName.trim(),
+        email: form.email.trim(),
+        subject: form.subject.trim(),
+        message: form.message.trim(),
+      });
       setIsSubmitted(true);
       setForm(initialForm);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : error && typeof error === 'object' && 'message' in error
+            ? String((error as { message?: unknown }).message)
+            : 'Unable to send your message right now. Please try again.';
+      setSubmitError(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -130,11 +158,17 @@ export default function ContactPage() {
 
             {isSubmitted && (
               <div className="mt-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">
-                Thanks for reaching out. This form is a preview and does not send messages yet.
+                Thanks for reaching out. Our support team will get back to you soon.
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
+              {submitError && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                  {submitError}
+                </div>
+              )}
+
               <Input
                 label="Full Name"
                 name="fullName"
@@ -180,7 +214,15 @@ export default function ContactPage() {
                 />
                 {errors.message && <p id="contact-message-error" role="alert" className="text-xs font-medium text-red-600">{errors.message}</p>}
               </div>
-              <Button type="submit" variant="primary" size="lg" icon="send" iconPosition="right" className="w-full sm:w-auto">
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                icon="send"
+                iconPosition="right"
+                isLoading={isSubmitting}
+                className="w-full sm:w-auto"
+              >
                 Send Message
               </Button>
             </form>

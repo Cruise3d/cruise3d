@@ -32,7 +32,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   return (
     <Link
       to={detailPath}
-      className="group relative flex flex-col justify-between bg-white rounded-2xl p-4 transition-all duration-300 border border-gray-100/80 overflow-hidden hover:scale-[1.02]"
+      className="group relative flex h-full flex-col bg-white rounded-2xl p-3.5 transition-all duration-300 border border-gray-100/80 overflow-hidden hover:-translate-y-0.5 sm:p-4"
       style={{
         boxShadow: shadows.DEFAULT,
       }}
@@ -45,7 +45,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
     >
       <div>
         {/* Image Container */}
-        <div className="relative aspect-4/3 w-full rounded-xl bg-slate-50 overflow-hidden mb-4 flex items-center justify-center">
+        <div className="relative aspect-[4/3] w-full rounded-xl bg-slate-50 overflow-hidden mb-3 flex items-center justify-center sm:mb-4">
           <img
             src={imageSrc}
             alt={product.title}
@@ -105,73 +105,45 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
         </div>
 
         {/* Product Details */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <span
-              className="text-xs font-semibold uppercase tracking-wider"
-              style={{ color: colors.primary.DEFAULT }}
-            >
-              {product.category}
+        <div className="space-y-2">
+          <div
+            className="flex items-center gap-1 text-xs font-medium"
+            style={{ color: colors.status.warning.DEFAULT }}
+          >
+            <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+              star
             </span>
-            <div
-              className="flex items-center gap-1 text-xs font-medium"
-              style={{ color: colors.status.warning.DEFAULT }}
-            >
-              <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                star
-              </span>
-              <span style={{ color: colors.text.primary }}>{product.rating.toFixed(1)}</span>
-              <span style={{ color: colors.text.tertiary }}>({product.reviewCount})</span>
-            </div>
+            <span style={{ color: colors.text.primary }}>{product.rating.toFixed(1)}</span>
+            <span style={{ color: colors.text.tertiary }}>({product.reviewCount})</span>
           </div>
 
-          <h3
-            className="text-base font-semibold line-clamp-1 transition-colors"
-            style={{ color: colors.text.primary }}
-          >
-            {product.title}
-          </h3>
-
-          {product.subtitle && (
-            <p
-              className="text-xs line-clamp-1 font-normal"
-              style={{ color: colors.text.secondary }}
+          <div className="flex items-start justify-between gap-2">
+            <h3
+              className="min-w-0 text-sm font-semibold leading-5 line-clamp-2 transition-colors sm:text-base"
+              style={{ color: colors.text.primary }}
             >
-              {product.subtitle}
-              {product.material ? ` • ${product.material}` : ''}
-            </p>
-          )}
+              {product.title}
+            </h3>
+            <span className="shrink-0 text-sm font-bold sm:text-base" style={{ color: colors.text.primary }}>
+              ₹{product.price.toFixed(2)}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Footer / Price & Action */}
-      <div
-        className="mt-4 pt-3 flex items-center justify-between"
-        style={{ borderTop: `1px solid ${colors.border.light}` }}
-      >
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-lg font-bold" style={{ color: colors.text.primary }}>
-            ₹{product.price.toFixed(2)}
-          </span>
-          {product.originalPrice && (
-            <span className="text-xs line-through" style={{ color: colors.text.tertiary }}>
-              ₹{product.originalPrice.toFixed(2)}
-            </span>
-          )}
-        </div>
-
+      {/* Keep the cart action at the bottom of every card. */}
+      <div className="mt-4">
         <Button
           variant="primary"
-          size="sm"
-          icon="add_shopping_cart"
+          size="md"
           disabled={!product.inStock}
           onClick={(event) => {
             stopCardNav(event);
             if (onAddToCart) onAddToCart(product);
           }}
-          className="rounded-lg shadow-none"
+          className="w-full rounded-xl px-2 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] shadow-none sm:text-xs"
         >
-          {product.inStock ? 'Add' : 'Out'}
+          {product.inStock ? 'Add to cart' : 'Out of stock'}
         </Button>
       </div>
     </Link>

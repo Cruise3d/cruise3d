@@ -119,3 +119,13 @@ export interface AdminTestimonial {
   status: 'approved' | 'pending' | 'rejected';
   createdAt?: string;
 }
+
+export interface AdminContactMessage {
+  id: string;
+  fullName: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+  isRead: boolean;
+}

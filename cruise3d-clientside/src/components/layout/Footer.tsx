@@ -19,7 +19,7 @@ export default function Footer() {
       <div className="mx-auto flex max-w-[1280px] flex-col gap-6 px-6 py-10 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2 text-center md:text-left">
           <div className="text-lg font-semibold" style={{ color: colors.text.primary }}>
-            Cruise3D
+            ToyCart
           </div>
           <p className="text-sm" style={{ color: colors.text.secondary }}>
             PRECISION ENGINEERED.
@@ -49,7 +49,7 @@ export default function Footer() {
         </div>
 
         <div className="text-sm text-center md:text-right" style={{ color: colors.text.secondary }}>
-          Copyright 2024 Cruise3D. PRECISION ENGINEERED.
+          Copyright 2024 ToyCart. PRECISION ENGINEERED.
         </div>
       </div>
     </footer>

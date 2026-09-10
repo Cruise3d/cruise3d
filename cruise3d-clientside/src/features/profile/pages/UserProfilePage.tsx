@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../../app/store/authStore';
 import { Input } from '../../../components/ui/Input';
 import { Button } from '../../../components/ui/Button';
+import { showToast } from '../../../components/ui/toastEvents';
 import { getMyOrders } from '../../orders/api';
+import { updateProfile } from '../api';
 import {
   createAddress,
   deleteAddress,
@@ -11,6 +13,7 @@ import {
   setDefaultAddress,
   updateAddress,
 } from '../api';
+import type { AuthResponse } from '../../auth/types';
 import type { Address, CreateAddressRequest } from '../types';
 import type { Order } from '../../orders/types';
 
@@ -122,12 +125,69 @@ export const UserProfilePage: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const getProfileErrorMessage = (error: unknown) => {
+    if (typeof error === 'string' && error.trim()) return error;
+
+    if (error && typeof error === 'object') {
+      const candidate = error as {
+        message?: unknown;
+        response?: { data?: { message?: unknown } | string };
+      };
+      const responseMessage = candidate.response?.data;
+      if (typeof responseMessage === 'string' && responseMessage.trim()) {
+        return responseMessage;
+      }
+      if (
+        responseMessage &&
+        typeof responseMessage === 'object' &&
+        typeof responseMessage.message === 'string' &&
+        responseMessage.message.trim()
+      ) {
+        return responseMessage.message;
+      }
+      if (typeof candidate.message === 'string' && candidate.message.trim()) {
+        return candidate.message;
+      }
+    }
+
+    return 'Unable to save your profile right now.';
+  };
+
+  const mapAuthResponseToUser = (response: AuthResponse) => {
+    const trimmedName = response.name.trim();
+    const [firstName, ...rest] = trimmedName.split(/\s+/);
+
+    return {
+      firstName: firstName || trimmedName,
+      lastName: rest.join(' '),
+      email: response.email,
+      phone: response.phone,
+      role: response.role,
+      isEmailVerified: response.isEmailVerified,
+    };
+  };
+
   const handleSaveProfile = async () => {
+    if (isSaving) return;
+
     setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    updateUser(formData);
-    setIsSaving(false);
-    setIsEditing(false);
+
+    try {
+      const response = await updateProfile({
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+      });
+
+      updateUser(mapAuthResponseToUser(response));
+      showToast('Profile updated successfully.', 'success');
+      setIsEditing(false);
+    } catch (error: unknown) {
+      showToast(getProfileErrorMessage(error), 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleLogout = () => {

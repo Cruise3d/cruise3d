@@ -2,6 +2,7 @@ import axiosClient from '@/api/axiosClient';
 
 import type {
   AdminCategory,
+  AdminContactMessage,
   AdminOrder,
   AdminProduct,
   AdminTestimonial,
@@ -159,4 +160,9 @@ export async function fetchAdminTestimonials() {
 export async function approveTestimonial(_id: string) {
   // Placeholder - API not implemented
   return Promise.resolve();
+}
+
+// Contact messages - Admin
+export async function fetchAdminContactMessages() {
+  return axiosClient.get<AdminContactMessage[]>('/contact/messages');
 }

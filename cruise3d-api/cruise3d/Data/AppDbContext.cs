@@ -23,6 +23,7 @@ namespace cruise3d.API.Data
         public DbSet<Review> Reviews => Set<Review>();
         public DbSet<Testimonial> Testimonials => Set<Testimonial>();
         public DbSet<NewsletterSubscriber> NewsletterSubscribers => Set<NewsletterSubscriber>();
+        public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
         public DbSet<NotificationToken> NotificationTokens => Set<NotificationToken>();
         public DbSet<EmailVerificationToken> EmailVerificationTokens => Set<EmailVerificationToken>();
         public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();

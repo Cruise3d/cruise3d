@@ -4,6 +4,7 @@ import { useCartStore } from '../../features/cart/useCartStore';
 import { useAuthStore } from '../../app/store/authStore';
 import OfferBanner from '../../features/offers/components/OfferBanner';
 import { theme } from '../../styles/theme';
+import toycartLogo from '../../assets/toycart-logo.png';
 
 const navItems = [
   { label: 'Home', to: '/' },
@@ -46,10 +47,13 @@ export default function Header() {
         {/* Brand */}
         <Link 
           to="/" 
-          className="text-xl font-bold tracking-tight transition-all duration-200 hover:opacity-80"
-          style={{ color: colors.text.primary }}
+          className="shrink-0 transition-all duration-200 hover:opacity-80"
         >
-          Cruise<span style={{ color: colors.primary.DEFAULT }}>3D</span>
+          <img
+            src={toycartLogo}
+            alt="ToyCart"
+            className="block h-8 w-auto sm:h-9"
+          />
         </Link>
 
         {/* Navigation */}

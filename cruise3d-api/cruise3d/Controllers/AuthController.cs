@@ -45,6 +45,17 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<AuthResponseDto>.Ok(result));
     }
 
+    // PUT api/auth/profile
+    // Updates the logged-in user's profile
+    [HttpPut("profile")]
+    [Authorize]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
+    {
+        var userId = JwtHelper.GetUserId(User);
+        var result = await _auth.UpdateProfileAsync(userId, dto);
+        return Ok(ApiResponse<AuthResponseDto>.Ok(result, "Profile updated successfully."));
+    }
+
     // POST api/auth/verify-email
     // Public — verifies token sent to user's email
     [HttpPost("verify-email")]
@@ -81,6 +92,5 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<string>.Ok(string.Empty, "Password has been reset successfully. You can now sign in with your new password."));
     }
 }
-
 
 

@@ -22,6 +22,7 @@ import AdminOrdersPage from '../../features/admin/pages/AdminOrdersPage'
 import AdminCategoriesPage from '../../features/admin/pages/AdminCategoriesPage'
 import AdminOffersPage from '../../features/admin/pages/AdminOffersPage'
 import AdminTestimonialsPage from '../../features/admin/pages/AdminTestimonialsPage'
+import AdminContactMessagesPage from '../../features/admin/pages/AdminContactMessagesPage'
 import ProtectedRoute from './ProtectedRoute'
 import AdminRoute from './AdminRoute'
 import { theme } from '../../styles/theme'
@@ -187,6 +188,14 @@ export default function AppRouter() {
             element={
               <AdminRoute>
                 <AdminTestimonialsPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="admin/contact-messages"
+            element={
+              <AdminRoute>
+                <AdminContactMessagesPage />
               </AdminRoute>
             }
           />

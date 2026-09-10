@@ -1,9 +1,26 @@
 import axiosClient from '@/api/axiosClient';
 
+import type { AuthResponse } from '../auth/types';
 import type { Address, CreateAddressRequest, Profile } from './types';
+
+export interface UpdateProfileRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
 
 export async function getProfile() {
   return axiosClient.get<Profile>('/auth/me');
+}
+
+export async function updateProfile(
+  payload: UpdateProfileRequest
+): Promise<AuthResponse> {
+  return axiosClient.put<AuthResponse, UpdateProfileRequest>(
+    '/auth/profile',
+    payload
+  ) as unknown as Promise<AuthResponse>;
 }
 
 export async function createAddress(payload: CreateAddressRequest) {

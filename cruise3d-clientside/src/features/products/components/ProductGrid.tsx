@@ -46,7 +46,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full">
+    <div className="grid grid-cols-2 gap-4 w-full sm:gap-5 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
       {products.map((product) => (
         <ProductCard
           key={product.id}

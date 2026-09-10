@@ -8,6 +8,7 @@ const links = [
   { label: 'Categories', to: '/admin/categories' },
   { label: 'Offers', to: '/admin/offers' },
   { label: 'Testimonials', to: '/admin/testimonials' },
+  { label: 'Contact Messages', to: '/admin/contact-messages' },
 ]
 
 export default function AdminSidebar() {
