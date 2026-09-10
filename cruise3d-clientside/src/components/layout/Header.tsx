@@ -52,7 +52,7 @@ export default function Header() {
           <img
             src={toycartLogo}
             alt="ToyCart"
-            className="block h-8 w-auto sm:h-9"
+            className="block h-9 w-auto max-w-[8rem] object-contain sm:h-10 sm:max-w-[9rem]"
           />
         </Link>
 

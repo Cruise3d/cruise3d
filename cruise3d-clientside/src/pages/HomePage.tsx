@@ -158,7 +158,7 @@ export default function HomePage() {
     <div className="overflow-hidden" style={{ backgroundColor: colors.background.page }}>
       {/* Hero Section */}
       <section
-        className="relative overflow-hidden border-b bg-white px-4 py-10 md:px-6 md:py-14"
+        className="relative overflow-hidden border-b bg-white px-4 py-6 sm:py-8 md:px-6 md:py-10 lg:py-12"
         style={{ borderColor: colors.border.DEFAULT }}
       >
         <div
@@ -218,7 +218,7 @@ export default function HomePage() {
 
       {/* Category Showcase Section */}
       <section
-        className="border-b py-20"
+        className="border-b pb-20 pt-8 sm:pt-10 md:pt-12 lg:pt-14"
         style={{
           backgroundColor: colors.background.page,
           borderColor: colors.border.DEFAULT,
@@ -314,7 +314,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Products Section */}
-      <section className="py-20">
+      <section className="py-10">
         <div className="mx-auto max-w-[1280px] px-6 space-y-12">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -368,7 +368,7 @@ export default function HomePage() {
 
       {/* Process Section */}
       <section 
-        className="bg-white py-20 border-t border-b"
+        className="bg-white py-10 border-t border-b"
         style={{
           borderColor: colors.border.DEFAULT,
         }}
@@ -426,7 +426,7 @@ export default function HomePage() {
 
       {/* Newsletter Section */}
       <section 
-        className="relative overflow-hidden py-20 text-white"
+        className="relative overflow-hidden py-10 text-white"
         style={{ backgroundColor: colors.primary[900] }}
       >
         <div 
@@ -464,7 +464,7 @@ export default function HomePage() {
       </section>
 
       {/* Contact Section */}
-      <section className="py-20">
+      <section className="py-10">
         <div className="mx-auto max-w-[1280px] px-6 space-y-10">
           <div className="max-w-2xl space-y-3">
             <p
