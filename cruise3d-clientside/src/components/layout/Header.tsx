@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCartStore } from '../../features/cart/useCartStore';
 import { useAuthStore } from '../../app/store/authStore';
 import OfferBanner from '../../features/offers/components/OfferBanner';
@@ -15,6 +15,7 @@ const navItems = [
 
 export default function Header() {
   const [isMenuOpen, setMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
   const { getTotalItems, toggleCart, fetchCart } = useCartStore();
   const totalItems = getTotalItems();
 
@@ -32,8 +33,30 @@ export default function Header() {
   const userDestination = isAuthenticated ? '/profile' : '/login';
   const userAriaLabel = isAuthenticated ? 'Open user profile' : 'Sign in';
 
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const updateHeaderHeight = () => {
+      document.documentElement.style.setProperty(
+        '--site-header-height',
+        `${header.getBoundingClientRect().height}px`,
+      );
+    };
+
+    updateHeaderHeight();
+    const resizeObserver = new ResizeObserver(updateHeaderHeight);
+    resizeObserver.observe(header);
+
+    return () => {
+      resizeObserver.disconnect();
+      document.documentElement.style.removeProperty('--site-header-height');
+    };
+  }, []);
+
   return (
-    <header 
+    <header
+      ref={headerRef}
       className="fixed inset-x-0 top-0 z-50 border-b shadow-sm transition-all duration-300"
       style={{
         backgroundColor: 'rgba(255, 255, 255, 0.97)',
