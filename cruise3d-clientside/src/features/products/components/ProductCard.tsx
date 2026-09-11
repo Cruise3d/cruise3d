@@ -32,7 +32,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   return (
     <Link
       to={detailPath}
-      className="group relative flex h-full flex-col bg-white rounded-2xl p-3.5 transition-all duration-300 border border-gray-100/80 overflow-hidden hover:-translate-y-0.5 sm:p-4"
+      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100/80 bg-white p-3 transition-all duration-300 hover:-translate-y-0.5 sm:p-4"
       style={{
         boxShadow: shadows.DEFAULT,
       }}
@@ -45,7 +45,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
     >
       <div>
         {/* Image Container */}
-        <div className="relative aspect-[4/3] w-full rounded-xl bg-slate-50 overflow-hidden mb-3 flex items-center justify-center sm:mb-4">
+        <div className="relative mb-3 flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-xl bg-slate-50 sm:mb-4">
           <img
             src={imageSrc}
             alt={product.title}
@@ -55,7 +55,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
           />
 
           {/* Top Badges */}
-          <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+          <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-1.5">
             {product.isNew && (
               <span
                 className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wider backdrop-blur-xs"
@@ -80,7 +80,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
             )}
           </div>
 
-          {/* Wishlist Button — nested inside the Link, so it must stop
+          {/* Wishlist Button is nested inside the Link, so it must stop
               propagation to avoid navigating when clicked. */}
           <button
             type="button"
@@ -88,7 +88,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
               stopCardNav(event);
               setIsWishlisted((v) => !v);
             }}
-            className="absolute top-3 right-3 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-white/90 shadow-sm cursor-pointer transition-all"
+            className="absolute right-3 top-3 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white/90 shadow-sm transition-all"
             style={{
               color: isWishlisted ? colors.status.error.DEFAULT : colors.text.secondary,
             }}
@@ -107,7 +107,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
         {/* Product Details */}
         <div className="space-y-2">
           <div
-            className="flex items-center gap-1 text-xs font-medium"
+            className="flex items-center gap-1 text-[11px] font-medium"
             style={{ color: colors.status.warning.DEFAULT }}
           >
             <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -117,14 +117,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
             <span style={{ color: colors.text.tertiary }}>({product.reviewCount})</span>
           </div>
 
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-2">
             <h3
               className="min-w-0 text-sm font-semibold leading-5 line-clamp-2 transition-colors sm:text-base"
               style={{ color: colors.text.primary }}
             >
               {product.title}
             </h3>
-            <span className="shrink-0 text-sm font-bold sm:text-base" style={{ color: colors.text.primary }}>
+            <span className="shrink-0 text-base font-bold" style={{ color: colors.text.primary }}>
               ₹{product.price.toFixed(2)}
             </span>
           </div>
@@ -141,7 +141,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
             stopCardNav(event);
             if (onAddToCart) onAddToCart(product);
           }}
-          className="w-full rounded-xl px-2 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] shadow-none sm:text-xs"
+          className="w-full rounded-lg px-2 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] shadow-none sm:text-xs"
         >
           {product.inStock ? 'Add to cart' : 'Out of stock'}
         </Button>

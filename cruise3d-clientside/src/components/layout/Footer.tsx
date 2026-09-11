@@ -16,7 +16,7 @@ export default function Footer() {
         color: colors.text.secondary,
       }}
     >
-      <div className="mx-auto flex max-w-[1280px] flex-col gap-6 px-6 py-10 md:flex-row md:items-center md:justify-between">
+      <div className="mx-auto flex max-w-[1280px] flex-col gap-8 border-t border-[#d8d6d1] px-6 py-12 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2 text-center md:text-left">
           <div className="text-lg font-semibold" style={{ color: colors.text.primary }}>
             ToyCart

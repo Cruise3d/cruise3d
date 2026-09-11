@@ -48,14 +48,14 @@ export function ToastHost() {
 
   const toneClasses =
     toast.kind === 'success'
-      ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+      ? 'border-[#bbdec5] bg-[#f0f8f2] text-[#14532d]'
       : toast.kind === 'error'
-        ? 'border-red-200 bg-red-50 text-red-900'
-        : 'border-slate-200 bg-slate-950 text-white';
+        ? 'border-[#f0caca] bg-[#fff5f5] text-[#7f1d1d]'
+        : 'border-[#404040] bg-[#1a1a1a] text-white';
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100] max-w-sm animate-fade-in">
-      <div className={`rounded-2xl border px-4 py-3 shadow-xl ${toneClasses}`}>
+    <div className="fixed inset-x-4 bottom-4 z-[100] max-w-sm animate-fade-in sm:inset-x-auto sm:right-6 sm:bottom-6">
+      <div className={`rounded-xl border px-4 py-3 shadow-xl ${toneClasses}`}>
         <p className="text-sm font-medium whitespace-pre-line">{toast.message}</p>
       </div>
     </div>

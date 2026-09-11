@@ -158,11 +158,11 @@ export default function HomePage() {
     <div className="overflow-hidden" style={{ backgroundColor: colors.background.page }}>
       {/* Hero Section */}
       <section
-        className="relative overflow-hidden border-b bg-white px-4 py-6 sm:py-8 md:px-6 md:py-10 lg:py-12"
+        className="relative overflow-hidden border-b bg-white pb-4 pt-6 px-4 sm:pb-4 sm:pt-8 md:px-6"
         style={{ borderColor: colors.border.DEFAULT }}
       >
         <div
-          className="relative mx-auto aspect-[4/3] max-w-[1440px] min-w-0 overflow-hidden rounded-2xl border shadow-lg sm:aspect-[16/9] lg:aspect-[16/7]"
+          className="relative mx-auto h-[300px] max-w-[1180px] min-w-0 overflow-hidden rounded-2xl border shadow-lg sm:h-[400px] lg:h-[440px]"
           onMouseEnter={() => setIsHeroPaused(true)}
           onMouseLeave={() => setIsHeroPaused(false)}
           onFocus={() => setIsHeroPaused(true)}
@@ -181,22 +181,25 @@ export default function HomePage() {
             />
           ))}
 
-          <button
-            type="button"
-            aria-label="Previous hero slide"
-            onClick={() => setActiveHeroSlide((current) => (current - 1 + heroSlides.length) % heroSlides.length)}
-            className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/50 bg-slate-950/35 text-white backdrop-blur-sm transition hover:bg-slate-950/65 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          >
-            <span className="material-symbols-outlined">chevron_left</span>
-          </button>
-          <button
-            type="button"
-            aria-label="Next hero slide"
-            onClick={() => setActiveHeroSlide((current) => (current + 1) % heroSlides.length)}
-            className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/50 bg-slate-950/35 text-white backdrop-blur-sm transition hover:bg-slate-950/65 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          >
-            <span className="material-symbols-outlined">chevron_right</span>
-          </button>
+          <div className="absolute inset-0 z-[5] bg-black/35" />
+          <div className="absolute inset-x-6 bottom-14 z-[6] max-w-[34rem] text-white sm:inset-x-10 sm:bottom-16 lg:inset-x-16 lg:bottom-20">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/75">
+              Precision in every layer
+            </p>
+            <h1 className="mt-3 max-w-[27rem] text-3xl font-extrabold leading-[1.08] tracking-tight sm:text-4xl lg:text-5xl">
+              Precision objects, printed to stand out
+            </h1>
+            <p className="mt-4 max-w-md text-sm leading-6 text-white/85 sm:text-base">
+              Explore engineered 3D-printed pieces made for curious spaces and considered collections.
+            </p>
+            <Link
+              to="/products"
+              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-semibold text-[#1a1a1a] transition hover:-translate-y-0.5 hover:bg-white/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Shop products
+              <span className="material-symbols-outlined text-base">arrow_forward</span>
+            </Link>
+          </div>
 
           <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2" role="tablist" aria-label="Hero slides">
             {heroSlides.map((slide, index) => (
@@ -218,7 +221,7 @@ export default function HomePage() {
 
       {/* Category Showcase Section */}
       <section
-        className="border-b pb-20 pt-8 sm:pt-10 md:pt-12 lg:pt-14"
+        className="border-b pb-5 pt-5 sm:pt-8 md:pt-5 lg:pt-5"
         style={{
           backgroundColor: colors.background.page,
           borderColor: colors.border.DEFAULT,
@@ -265,7 +268,7 @@ export default function HomePage() {
               Categories will appear here once added from the admin page.
             </p>
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5">
               {categories.map((category) => (
                 <Link
                   key={category.id}
@@ -314,7 +317,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Products Section */}
-      <section className="py-10">
+      <section className="py-5">
         <div className="mx-auto max-w-[1280px] px-6 space-y-12">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -368,7 +371,7 @@ export default function HomePage() {
 
       {/* Process Section */}
       <section 
-        className="bg-white py-10 border-t border-b"
+        className="border-b border-t bg-white py-5 sm:py-5"
         style={{
           borderColor: colors.border.DEFAULT,
         }}
@@ -390,19 +393,17 @@ export default function HomePage() {
             </h2>
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-3">
-            {featureSteps.map((step) => (
+          <div className="relative grid gap-0 border-y lg:grid-cols-3" style={{ borderColor: colors.border.DEFAULT }}>
+            {featureSteps.map((step, index) => (
               <div 
                 key={step.title} 
-                className="space-y-6 rounded-2xl p-8 border"
+                className="relative space-y-5 border-b p-6 last:border-b-0 sm:p-8 lg:border-b-0 lg:border-r lg:last:border-r-0"
                 style={{
-                  backgroundColor: colors.surface.container,
                   borderColor: colors.border.DEFAULT,
-                  boxShadow: shadows.DEFAULT,
                 }}
               >
                 <div 
-                  className="flex h-12 w-12 items-center justify-center rounded-xl text-white"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg text-white"
                   style={{
                     backgroundColor: colors.primary.DEFAULT,
                     boxShadow: shadows.sm,
@@ -412,7 +413,8 @@ export default function HomePage() {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold" style={{ color: colors.text.primary }}>
-                    {step.title}
+                    <span className="mr-2 text-sm font-semibold text-[#737373]">0{index + 1}</span>
+                    {step.title.replace(/^\d+\.\s*/, '')}
                   </h3>
                   <p className="mt-3 text-sm leading-relaxed" style={{ color: colors.text.secondary }}>
                     {step.description}
@@ -436,7 +438,7 @@ export default function HomePage() {
             opacity: 0.15,
           }}
         />
-        <div className="relative mx-auto flex max-w-[1280px] flex-col gap-10 px-6 md:flex-row md:items-center md:justify-between">
+        <div className="relative mx-auto flex max-w-[1280px] flex-col gap-8 px-6 md:flex-row md:items-center md:justify-between">
           <div className="max-w-xl space-y-3">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
               Join the Additive Vanguard
@@ -445,11 +447,11 @@ export default function HomePage() {
               Get early access to limited titanium drops, custom STL requests, and new material releases.
             </p>
           </div>
-          <form className="flex flex-col gap-3 sm:flex-row sm:items-center w-full md:w-auto" onSubmit={(e) => e.preventDefault()}>
+          <form className="flex w-full flex-col gap-3 sm:flex-row sm:items-center md:w-auto" onSubmit={(e) => e.preventDefault()}>
             <input
               type="email"
               placeholder="Enter your email"
-              className="min-w-[280px] rounded-lg border px-4 py-3 text-sm placeholder-gray-400 focus:outline-none"
+              className="w-full rounded-lg border px-4 py-3 text-sm placeholder:text-gray-400 focus:outline-none sm:min-w-[240px]"
               style={{
                 backgroundColor: colors.primary[800],
                 borderColor: colors.primary[700],
@@ -489,7 +491,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {contactCards.map((card) => {
               return (
                 <article

@@ -48,10 +48,10 @@ export const theme = {
       
       // Background - Updated to warm cream for a more premium feel
       background: {
-        DEFAULT: '#f4f3f0', // Clean off-white
-        page: '#f4f3f0',
+        DEFAULT: '#f7f6f3',
+        page: '#f7f6f3',
         card: '#ffffff',
-        input: '#eae8e4',
+        input: '#f1f0ed',
       },
       
       // Text colors - High contrast dark
@@ -94,18 +94,18 @@ export const theme = {
       
       // Border colors - Subtle and refined
       border: {
-        DEFAULT: '#d4d4d4',
-        light: '#e5e5e5',
-        dark: '#a3a3a3',
+        DEFAULT: '#d8d6d1',
+        light: '#e8e6e1',
+        dark: '#a8a59e',
         focus: '#1a1a1a',
       },
       
       // Shadow colors - Using dark with very low opacity
       shadow: {
-        DEFAULT: 'rgba(0, 0, 0, 0.04)',
-        medium: 'rgba(0, 0, 0, 0.08)',
-        large: 'rgba(0, 0, 0, 0.12)',
-        primary: 'rgba(0, 0, 0, 0.06)',
+        DEFAULT: 'rgba(26, 26, 26, 0.05)',
+        medium: 'rgba(26, 26, 26, 0.08)',
+        large: 'rgba(26, 26, 26, 0.12)',
+        primary: 'rgba(26, 26, 26, 0.07)',
       },
     },
     
@@ -191,12 +191,12 @@ export const theme = {
     },
     
     shadows: {
-      sm: '0 1px 2px rgba(0, 0, 0, 0.04)',
-      DEFAULT: '0 4px 20px rgba(0, 0, 0, 0.04)',
-      md: '0 8px 30px rgba(0, 0, 0, 0.06)',
-      lg: '0 12px 48px rgba(0, 0, 0, 0.08)',
-      xl: '0 20px 64px rgba(0, 0, 0, 0.10)',
-      primary: '0 4px 20px rgba(0, 0, 0, 0.06)',
+      sm: '0 1px 2px rgba(26, 26, 26, 0.05)',
+      DEFAULT: '0 4px 20px rgba(26, 26, 26, 0.05)',
+      md: '0 8px 30px rgba(26, 26, 26, 0.07)',
+      lg: '0 12px 48px rgba(26, 26, 26, 0.09)',
+      xl: '0 20px 64px rgba(26, 26, 26, 0.12)',
+      primary: '0 4px 20px rgba(26, 26, 26, 0.07)',
     },
   } as const;
   

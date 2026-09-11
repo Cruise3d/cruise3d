@@ -2,8 +2,8 @@
 
 :root {
   color-scheme: light;
-  background-color: #f7f9fb;
-  color: #191c1e;
+  background-color: #f7f6f3;
+  color: #0a0a0a;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -13,8 +13,8 @@ html {
 
 body {
   min-height: 100vh;
-  background-color: #f7f9fb;
-  color: #191c1e;
+  background-color: #f7f6f3;
+  color: #0a0a0a;
 }
 
 .material-symbols-outlined {
@@ -95,4 +95,3 @@ body {
 .animate-scale-up {
   animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-

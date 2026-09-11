@@ -34,16 +34,16 @@ export default function Header() {
 
   return (
     <header 
-      className="fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl shadow-sm transition-all duration-300"
+      className="fixed inset-x-0 top-0 z-50 border-b shadow-sm transition-all duration-300"
       style={{
-        backgroundColor: colors.surface.overlay,
+        backgroundColor: 'rgba(255, 255, 255, 0.97)',
         borderColor: colors.border.DEFAULT,
         color: colors.text.primary,
         boxShadow: shadows.sm,
       }}
     >
       <OfferBanner />
-      <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-6 py-3 lg:py-4">
+      <div className="mx-auto flex min-h-[4.25rem] max-w-[1280px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
         {/* Brand */}
         <Link 
           to="/" 

@@ -26,7 +26,7 @@ export default function OfferBanner() {
         borderColor: colors.primary.dark,
       }}
     >
-      <div className="mx-auto flex max-w-[1280px] items-center gap-3 px-6 py-2 text-center text-sm font-medium">
+      <div className="mx-auto flex min-h-9 max-w-[1280px] items-center gap-3 px-4 py-2 text-center text-xs font-medium sm:px-6 sm:text-sm">
         <div className="offer-marquee min-w-0 flex-1 overflow-hidden">
           <div className="offer-marquee__track">
             {[0, 1].map((groupIndex) => (

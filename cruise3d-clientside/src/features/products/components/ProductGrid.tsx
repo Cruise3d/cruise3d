@@ -19,7 +19,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 w-full">
+      <div className="flex w-full flex-col items-center justify-center py-24">
         <Spinner size="xl" variant="primary" />
         <p className="mt-4 text-sm font-medium text-gray-500">Loading precision engineered products...</p>
       </div>
@@ -28,7 +28,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
 
   if (products.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-2xl border border-gray-100 shadow-xs text-center">
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-gray-100 bg-white px-4 py-20 text-center shadow-xs">
         <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-4">
           <span className="material-symbols-outlined text-[2rem]">search_off</span>
         </div>
@@ -46,7 +46,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 w-full sm:gap-5 md:grid-cols-3 lg:grid-cols-4 lg:gap-6">
+    <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 lg:gap-6">
       {products.map((product) => (
         <ProductCard
           key={product.id}

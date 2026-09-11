@@ -7,7 +7,6 @@ import {
   type OrderStatus,
   ORDER_STATUS_LABELS,
   ORDER_STATUS_COLORS,
-  ORDER_STATUS_TIMELINE,
 } from '../types';
 
 export const OrderDetailPage: React.FC = () => {
@@ -94,9 +93,6 @@ export const OrderDetailPage: React.FC = () => {
   const statusKey = (order.status?.toLowerCase() ?? 'placed') as OrderStatus;
   const statusLabel = ORDER_STATUS_LABELS[statusKey] ?? order.status ?? 'Order Placed';
   const statusColor = ORDER_STATUS_COLORS[statusKey] ?? 'bg-surface-container text-on-surface border-surface-container-highest';
-  const currentStatusIndex = ORDER_STATUS_TIMELINE.indexOf(statusKey) !== -1
-    ? ORDER_STATUS_TIMELINE.indexOf(statusKey)
-    : 0;
 
   const items = Array.isArray(order.items)
     ? order.items
@@ -182,119 +178,6 @@ export const OrderDetailPage: React.FC = () => {
           >
             {statusLabel}
           </span>
-        </div>
-
-        {/* Status Timeline */}
-        <div className="bg-surface-container-low rounded-2xl p-6 border border-surface-container-highest mb-8">
-          <h2 className="text-lg font-semibold text-on-surface mb-6">Order Status</h2>
-
-          {/* Desktop Timeline */}
-          <nav className="hidden md:block" aria-label="Order progress">
-            <ol className="flex items-center justify-between">
-              {ORDER_STATUS_TIMELINE.map((status, index) => {
-                const isCompleted = index < currentStatusIndex;
-                const isCurrent = index === currentStatusIndex;
-                const isLast = index === ORDER_STATUS_TIMELINE.length - 1;
-
-                return (
-                  <li
-                    key={status}
-                    className={`relative flex-1 ${!isLast && 'pr-8 sm:pr-20'}`}
-                  >
-                    {/* Connector Line */}
-                    {!isLast && (
-                      <div
-                        className={`absolute top-5 left-0 right-0 h-0.5 mx-auto ${
-                          index < currentStatusIndex
-                            ? 'bg-tertiary'
-                            : 'bg-surface-container-highest'
-                        }`}
-                        style={{ left: 'auto', right: '-50%', width: '100%' }}
-                        aria-hidden="true"
-                      />
-                    )}
-
-                    <div className="relative flex flex-col items-center">
-                      {/* Status Circle */}
-                      <div
-                        className={`relative flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-200 ${
-                          isCompleted
-                            ? 'border-tertiary bg-tertiary text-white'
-                            : isCurrent
-                            ? 'border-tertiary bg-surface text-tertiary ring-4 ring-tertiary/10'
-                            : 'border-surface-container-highest bg-surface-container-low text-on-surface-variant'
-                        }`}
-                      >
-                        {isCompleted ? (
-                          <span className="material-symbols-outlined text-lg">check</span>
-                        ) : (
-                          <span className="text-sm font-bold">{index + 1}</span>
-                        )}
-                      </div>
-
-                      {/* Status Label */}
-                      <span
-                        className={`mt-3 text-xs font-medium text-center max-w-[80px] transition-colors ${
-                          isCurrent
-                            ? 'text-tertiary'
-                            : isCompleted
-                            ? 'text-on-surface'
-                            : 'text-on-surface-variant'
-                        }`}
-                      >
-                        {ORDER_STATUS_LABELS[status]}
-                      </span>
-
-                      {/* Date (if applicable) */}
-                      {(isCompleted || isCurrent) && status !== 'delivered' && (
-                        <span className="mt-1 text-[10px] text-on-surface-variant">
-                          {status === 'placed' && formatDate(order.createdAt)}
-                          {status === 'processing' && formatDate(order.updatedAt)}
-                          {status === 'printing' && 'In Progress'}
-                          {status === 'shipped' && dtdcTrackingId && 'Shipped'}
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          </nav>
-
-          {/* Mobile Timeline */}
-          <div className="md:hidden">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-on-surface">
-                {statusLabel}
-              </span>
-              <span className="text-sm text-on-surface-variant">
-                Step {currentStatusIndex + 1} of {ORDER_STATUS_TIMELINE.length}
-              </span>
-            </div>
-            <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden">
-              <div
-                className="h-full bg-tertiary transition-all duration-300 ease-out rounded-full"
-                style={{ width: `${((currentStatusIndex + 1) / ORDER_STATUS_TIMELINE.length) * 100}%` }}
-              />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {ORDER_STATUS_TIMELINE.map((status, index) => (
-                <span
-                  key={status}
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
-                    index <= currentStatusIndex
-                      ? 'border-tertiary bg-tertiary/10 text-tertiary'
-                      : 'border-surface-container-highest bg-surface-container-low text-on-surface-variant'
-                  }`}
-                >
-                  {index < currentStatusIndex && (
-                    <span className="material-symbols-outlined text-xs mr-1">check</span>
-                  )}
-                  {ORDER_STATUS_LABELS[status]}
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Main Content Grid */}

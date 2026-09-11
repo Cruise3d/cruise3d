@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { Product, ProductFilterState } from '../types';
 import { getProducts } from '../api';
 import { ProductGrid } from '../components/ProductGrid';
@@ -19,6 +20,8 @@ function uniqueSorted(values: string[]): string[] {
 export default function ProductListPage() {
   const { colors, shadows } = theme;
   const addItem = useCartStore((state) => state.addItem);
+  const [searchParams] = useSearchParams();
+  const categoryId = searchParams.get('categoryId') ?? undefined;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,7 +31,7 @@ export default function ProductListPage() {
     let cancelled = false;
     setIsLoading(true);
     setError(null);
-    getProducts()
+    getProducts({ categoryId })
       .then((list) => {
         if (cancelled) return;
         setProducts(list);
@@ -45,7 +48,7 @@ export default function ProductListPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [categoryId]);
 
   const categories = useMemo(() => ['All', ...uniqueSorted(products.map((p) => p.category))], [products]);
   const materials = useMemo(() => uniqueSorted(products.map((p) => p.material)), [products]);
@@ -186,7 +189,7 @@ export default function ProductListPage() {
 
       {/* Kinetic Precision Hero Banner Section */}
       <section 
-        className="relative overflow-hidden border-b py-20 px-6"
+        className="relative overflow-hidden border-b px-6 py-14 sm:py-16"
         style={{
           backgroundColor: colors.surface.DEFAULT,
           borderColor: colors.border.DEFAULT,
@@ -198,7 +201,7 @@ export default function ProductListPage() {
             background: `radial-gradient(circle at 50% 50%, ${colors.surface.tint} 0%, ${colors.background.DEFAULT} 70%)`,
           }}
         />
-        <div className="relative mx-auto max-w-[1280px] text-center space-y-6">
+        <div className="relative mx-auto max-w-[1280px] space-y-5 text-center">
           <div 
             className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em]"
             style={{
@@ -225,7 +228,7 @@ export default function ProductListPage() {
       </section>
 
       {/* Main Catalog Container */}
-      <section className="mx-auto max-w-[1280px] px-6 py-12 space-y-8">
+      <section className="mx-auto max-w-[1280px] space-y-8 px-4 py-10 sm:px-6 sm:py-12">
         {/* Top Control Bar */}
         <div 
           className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 p-4 rounded-2xl border"
@@ -256,7 +259,7 @@ export default function ProductListPage() {
               size="sm"
               icon="tune"
               onClick={() => setIsFilterModalOpen(true)}
-              className="md:hidden"
+              className="lg:hidden"
             >
               Filter
             </Button>
@@ -305,9 +308,9 @@ export default function ProductListPage() {
         </div>
 
         {/* Catalog Grid Layout (Sidebar + Grid) */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           {/* Desktop Filter Sidebar */}
-          <div className="hidden md:block md:col-span-1">
+          <div className="hidden lg:col-span-1 lg:block">
             <ProductFilters
               filters={filters}
               categories={categories}
@@ -322,7 +325,7 @@ export default function ProductListPage() {
           </div>
 
           {/* Product Grid & Pagination Column */}
-          <div className="md:col-span-3 space-y-8 flex flex-col justify-between">
+          <div className="flex flex-col justify-between space-y-8 lg:col-span-3">
             {error ? (
               <div
                 className="rounded-2xl border p-8 text-center"

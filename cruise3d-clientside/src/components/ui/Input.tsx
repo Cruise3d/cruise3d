@@ -27,12 +27,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     ref
   ) => {
     const { colors } = theme;
-    const inputId = id || React.useId();
+    const generatedId = React.useId();
+    const inputId = id || generatedId;
     const helperId = `${inputId}-helper`;
     const errorId = `${inputId}-error`;
 
     return (
-      <div className="flex flex-col gap-1.5 w-full">
+      <div className="flex w-full flex-col gap-2">
         {label && (
           <label
             htmlFor={inputId}
@@ -64,7 +65,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             disabled={disabled}
             aria-describedby={clsx(helperText && helperId, error && errorId) || undefined}
             className={clsx(
-              'w-full px-3.5 py-2 text-sm rounded-lg border outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-offset-0 disabled:shadow-none placeholder-gray-400',
+              'w-full rounded-lg border px-3.5 py-2.5 text-sm outline-none transition-all duration-200 placeholder:text-[#737373] focus-visible:ring-2 focus-visible:ring-[#e5e5e5] focus-visible:ring-offset-0 disabled:shadow-none',
               icon && iconPosition === 'left' && 'pl-10',
               icon && iconPosition === 'right' && 'pr-10',
               className

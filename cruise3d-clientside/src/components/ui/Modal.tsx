@@ -74,7 +74,7 @@ export const Modal: React.FC<ModalProps> = ({
       <div
         ref={contentRef}
         className={clsx(
-          'flex flex-col rounded-xl border overflow-hidden transform transition-all duration-300 animate-scale-up',
+          'flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-2xl border transform transition-all duration-300 animate-scale-up',
           sizeClasses[size]
         )}
         style={{
