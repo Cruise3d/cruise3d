@@ -182,19 +182,19 @@ export default function HomePage() {
           ))}
 
           <div className="absolute inset-0 z-[5] bg-black/35" />
-          <div className="absolute inset-x-6 bottom-14 z-[6] max-w-[34rem] text-white sm:inset-x-10 sm:bottom-16 lg:inset-x-16 lg:bottom-20">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/75">
+          <div className="absolute inset-x-5 bottom-12 z-[6] max-w-[34rem] text-white sm:inset-x-10 sm:bottom-16 lg:inset-x-16 lg:bottom-20">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75 sm:text-xs sm:tracking-[0.22em]">
               Precision in every layer
             </p>
-            <h1 className="mt-3 max-w-[27rem] text-3xl font-extrabold leading-[1.08] tracking-tight sm:text-4xl lg:text-5xl">
+            <h1 className="mt-2 max-w-[19rem] text-2xl font-extrabold leading-[1.05] tracking-tight sm:mt-3 sm:max-w-[27rem] sm:text-4xl lg:text-5xl">
               Precision objects, printed to stand out
             </h1>
-            <p className="mt-4 max-w-md text-sm leading-6 text-white/85 sm:text-base">
+            <p className="mt-3 max-w-[19rem] text-xs leading-5 text-white/85 sm:mt-4 sm:max-w-md sm:text-base sm:leading-6">
               Explore engineered 3D-printed pieces made for curious spaces and considered collections.
             </p>
             <Link
               to="/products"
-              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-semibold text-[#1a1a1a] transition hover:-translate-y-0.5 hover:bg-white/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-[#1a1a1a] transition hover:-translate-y-0.5 hover:bg-white/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:mt-6 sm:px-5 sm:py-3"
             >
               Shop products
               <span className="material-symbols-outlined text-base">arrow_forward</span>
