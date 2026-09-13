@@ -31,6 +31,22 @@ namespace cruise3d.API.Repositories
                 .FirstOrDefaultAsync(p => p.OrderId == orderId);
         }
 
+        public async Task<Payment?> GetByUserAndCheckoutKeyAsync(Guid userId, string checkoutKey)
+        {
+            return await _db.Payments
+                .Where(p => p.UserId == userId && p.CheckoutKey == checkoutKey)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<Payment?> GetLatestPendingByUserIdAsync(Guid userId)
+        {
+            return await _db.Payments
+                .Where(p => p.UserId == userId &&
+                            (p.Status == "pending" || p.Status == "verification-pending"))
+                .OrderByDescending(p => p.CreatedAt)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<Payment> CreateAsync(Payment payment)
         {
             _db.Payments.Add(payment);

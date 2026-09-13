@@ -32,6 +32,15 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         entity.HasIndex(p => p.RazorpayPaymentId)
               .IsUnique();
 
+        entity.Property(p => p.CheckoutKey)
+              .HasMaxLength(64);
+
+        entity.HasIndex(p => new { p.UserId, p.CheckoutKey })
+              .IsUnique()
+              .HasFilter("checkout_key IS NOT NULL");
+
+        entity.HasIndex(p => p.UserId);
+
         entity.Property(p => p.Amount)
               .HasPrecision(10, 2);
 

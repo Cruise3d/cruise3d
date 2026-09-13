@@ -3,7 +3,12 @@ import { useEffect } from 'react';
 import { useAuthStore } from '@/app/store/authStore';
 import { useCartStore } from '@/features/cart/useCartStore';
 import { getMe } from '@/features/auth/api';
-import { unregisterFcmToken } from '@/lib/notifications/fcm';
+import {
+  getNotificationMessage,
+  onForegroundMessage,
+  registerFcmToken,
+  unregisterFcmToken,
+} from '@/lib/notifications/fcm';
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -43,15 +48,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       if (isHandlingLogout) return;
       isHandlingLogout = true;
 
-      try {
-        void unregisterFcmToken();
-      } catch {
-        // ignore
-      } finally {
-        logout();
-        useCartStore.getState().reset();
-        isHandlingLogout = false;
-      }
+      logout();
+      useCartStore.getState().reset();
+      isHandlingLogout = false;
     };
 
     window.addEventListener('auth:logout', handleAuthLogout);
@@ -60,6 +59,35 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     };
   }, []);
 
+  const { isAuthenticated, user } = useAuthStore();
+
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== 'admin') return;
+
+    void registerFcmToken().catch((error) => {
+      console.warn('FCM token registration failed.', error);
+    });
+
+    const unsubscribe = onForegroundMessage((payload) => {
+      if (Notification.permission !== 'granted') return;
+
+      const message = getNotificationMessage(payload);
+      const title = payload.notification?.title || 'Cruise3D notification';
+      const notification = new Notification(title, {
+        body: message.replace(`${title}\n`, ''),
+        icon: '/logo.png',
+        data: payload.data || {},
+      });
+      notification.onclick = () => {
+        window.focus();
+        const route = payload.data?.route || '/admin/orders';
+        window.location.assign(route);
+      };
+    });
+
+    return unsubscribe;
+  }, [isAuthenticated, user?.role]);
+
   // Keep the cart in sync when the auth state flips after login/register.
   useEffect(() => {
     const unsubscribe = useAuthStore.subscribe((state, prev) => {
@@ -67,6 +95,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         useCartStore.getState().fetchCart();
       } else if (!state.isAuthenticated && prev.isAuthenticated) {
         useCartStore.getState().reset();
+        void unregisterFcmToken().catch((error) => {
+          console.warn('FCM token cleanup failed.', error);
+        });
       }
     });
     return unsubscribe;

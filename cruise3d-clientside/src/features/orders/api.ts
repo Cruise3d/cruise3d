@@ -25,6 +25,9 @@ export interface RazorpayOrderResponse {
   checkoutSummary?: unknown;
   // Backend may create and return an addressId to be used during verification
   addressId?: AddressId;
+  paymentStatus?: string;
+  applicationOrderId?: string;
+  paymentId?: string;
 }
 
 export interface CreateRazorpayOrderPayload {
