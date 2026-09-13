@@ -430,6 +430,7 @@ public class OrderService : IOrderService
 
     private class CartSnapshotItem
     {
+        public Guid? CartId { get; set; }
         public Guid ProductId { get; set; }
         public Guid? ProductColorId { get; set; }
         public int Quantity { get; set; }

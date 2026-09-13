@@ -13,6 +13,7 @@ namespace cruise3d.Models.Entities
         public Guid UserId { get; set; }             // FK → users.id
         public string RazorpayOrderId { get; set; } = string.Empty;
         public string? RazorpayPaymentId { get; set; }
+        public string? CheckoutKey { get; set; }
         // JSON snapshot of the cart at the time the payment intent was created.
         public string? CartSnapshot { get; set; }
         public decimal Amount { get; set; }

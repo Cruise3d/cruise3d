@@ -9,6 +9,9 @@ public class CreateRazorpayOrderResponseDto
     public string Currency { get; set; } = "INR";
     public string Key { get; set; } = string.Empty;
     public CheckoutSummaryDto? CheckoutSummary { get; set; }
+    public string? PaymentStatus { get; set; }
+    public Guid? ApplicationOrderId { get; set; }
+    public string? PaymentId { get; set; }
 }
 
 // Snapshot of cart totals returned with the Razorpay order so the
