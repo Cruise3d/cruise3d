@@ -1,3 +1,5 @@
+using cruise3d.Models.Entities;
+
 namespace cruise3d.API.Services.Interfaces;
 
 public interface IBrevoEmailService
@@ -15,5 +17,8 @@ public interface IBrevoEmailService
         string resetLink,
         DateTime expiresAt,
         CancellationToken cancellationToken = default);
-}
 
+    Task SendAdminOrderPlacedEmailAsync(
+        Order order,
+        CancellationToken cancellationToken = default);
+}

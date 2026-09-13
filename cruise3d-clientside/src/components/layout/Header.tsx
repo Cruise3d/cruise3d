@@ -66,16 +66,18 @@ export default function Header() {
       }}
     >
       <OfferBanner />
-      <div className="mx-auto flex min-h-[4.25rem] max-w-[1280px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <div className="flex min-h-[4.25rem] w-full items-center justify-between gap-4 px-4 py-3 sm:px-6">
         {/* Brand */}
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="shrink-0 transition-all duration-200 hover:opacity-80"
+          style={{ marginLeft: '-0.5rem' }}
         >
           <img
             src={toycartLogo}
             alt="ToyCart"
             className="block h-9 w-auto max-w-[8rem] object-contain sm:h-10 sm:max-w-[9rem]"
+            style={{ transform: 'translateX(-8px)' }}
           />
         </Link>
 
@@ -86,7 +88,7 @@ export default function Header() {
               key={item.label}
               to={item.to}
               className="relative text-sm font-medium transition-all duration-200 after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-300 hover:after:w-full"
-              style={{ 
+              style={{
                 color: colors.text.secondary,
                 transition: 'color 0.2s',
               }}
@@ -146,7 +148,7 @@ export default function Header() {
           >
             <span className="material-symbols-outlined text-[1.3rem]">shopping_cart</span>
             {totalItems > 0 && (
-              <span 
+              <span
                 className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold shadow-sm transition-all duration-200 group-hover:scale-110"
                 style={{
                   backgroundColor: colors.primary.DEFAULT,
@@ -246,7 +248,7 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div 
+        <div
           className="border-t px-6 py-6 md:hidden animate-fade-in"
           style={{
             borderColor: colors.border.light,
@@ -342,7 +344,7 @@ export default function Header() {
             >
               <span className="material-symbols-outlined text-[1.3rem]">shopping_cart</span>
               {totalItems > 0 && (
-                <span 
+                <span
                   className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold shadow-sm"
                   style={{
                     backgroundColor: colors.primary.DEFAULT,

@@ -14,6 +14,7 @@ public class OrderService : IOrderService
     private readonly ICartRepository   _carts;
     private readonly IProductRepository _products;
     private readonly INotificationService _notifications;
+    private readonly IBrevoEmailService _email;
     private readonly ILogger<OrderService> _logger;
 
     private const decimal ShippingCharge = 60m; // ₹60 flat shipping
@@ -24,6 +25,7 @@ public class OrderService : IOrderService
         ICartRepository carts,
         IProductRepository products,
         INotificationService notifications,
+        IBrevoEmailService email,
         ILogger<OrderService> logger)
     {
         _orders        = orders;
@@ -31,6 +33,7 @@ public class OrderService : IOrderService
         _carts         = carts;
         _products      = products;
         _notifications = notifications;
+        _email         = email;
         _logger        = logger;
     }
 
@@ -126,6 +129,17 @@ public class OrderService : IOrderService
         {
             _logger.LogError(ex,
                 "FCM admin notification failed for COD order {Id}", order.Id);
+        }
+
+        // 10. Email the admin a full order summary (COD path).
+        try
+        {
+            await _email.SendAdminOrderPlacedEmailAsync(order);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Admin order email failed for COD order {Id}", order.Id);
         }
 
         return MapToResponse(order);
@@ -398,6 +412,17 @@ public class OrderService : IOrderService
         catch (Exception ex)
         {
             _logger.LogError(ex, "FCM notification failed for order {Id}", order.Id);
+        }
+
+        // Email the admin a full order summary (Razorpay path).
+        try
+        {
+            await _email.SendAdminOrderPlacedEmailAsync(order);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Admin order email failed for payment order {Id}", order.Id);
         }
 
         return MapToResponse(order);
