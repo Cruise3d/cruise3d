@@ -158,7 +158,7 @@ export default function HomePage() {
     <div className="overflow-hidden" style={{ backgroundColor: colors.background.page }}>
       {/* Hero Section */}
       <section
-        className="relative overflow-hidden border-b bg-white px-4 py-4 sm:px-6 sm:py-6 md:px-8"
+        className="relative overflow-hidden border-b bg-white px-4 py-1 sm:px-6 sm:py-2 md:px-8"
         style={{ borderColor: colors.border.DEFAULT }}
       >
         <div
