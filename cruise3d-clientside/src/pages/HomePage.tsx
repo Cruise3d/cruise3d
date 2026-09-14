@@ -225,7 +225,7 @@ export default function HomePage() {
 
       {/* Category Showcase Section */}
       <section
-        className="border-b pb-6 pt-6 sm:pb-8 sm:pt-8"
+        className="border-b pb-2 pt-2 sm:pb-3 sm:pt-6"
         style={{
           backgroundColor: colors.background.page,
           borderColor: colors.border.DEFAULT,
