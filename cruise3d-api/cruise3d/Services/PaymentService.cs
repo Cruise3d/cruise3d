@@ -13,6 +13,8 @@ using cruise3d.Models.Entities;
 using cruise3d.Models.Settings;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Razorpay.Api;
 using PaymentEntity = cruise3d.Models.Entities.Payment;
 using HttpMethod = System.Net.Http.HttpMethod;
@@ -72,9 +74,41 @@ public class PaymentService : IPaymentService
         const decimal ShippingCharge = 60m;
         var subtotal = cartItems.Sum(i => (i.Product?.Price ?? 0) * i.Quantity);
         var total = subtotal + ShippingCharge;
+        var checkoutKey = CreateCheckoutKey(cartItems);
+        var snapshotItems = cartItems.Select(i => new
+        {
+            CartId = i.Id,
+            ProductId = i.ProductId,
+            ProductColorId = i.ProductColorId,
+            Quantity = i.Quantity,
+            PriceAtPurchase = i.Product?.Price ?? 0,
+            ColorNameSnapshot = i.ProductColor?.ColorName ?? i.Product?.DefaultColorName,
+            ColorHexSnapshot = i.ProductColor?.ColorHex ?? i.Product?.DefaultColorHex
+        }).ToList();
 
         // Create Razorpay order (amount in paise)
         var amountPaise = (int)Math.Round(total * 100m);
+
+        await using var tx = await _db.Database.BeginTransactionAsync();
+        await AcquireCheckoutLockAsync(checkoutKey);
+
+        var existingIntent = await _payments.GetByUserAndCheckoutKeyAsync(userId, checkoutKey);
+        if (existingIntent == null)
+        {
+            // Intents created before CheckoutKey was introduced can still be
+            // matched by their stored cart snapshot.
+            var legacyIntent = await _payments.GetLatestPendingByUserIdAsync(userId);
+            if (legacyIntent != null && CartMatchesSnapshot(legacyIntent.CartSnapshot, cartItems))
+                existingIntent = legacyIntent;
+        }
+
+        if (existingIntent != null &&
+            existingIntent.Status != "failed" &&
+            existingIntent.Status != "refunded")
+        {
+            await tx.CommitAsync();
+            return CreateExistingIntentResponse(existingIntent, subtotal, ShippingCharge);
+        }
 
         // Receipt must be <= 40 characters; use shortened GUID (first 12 chars) with prefix
         var shortId = Guid.NewGuid().ToString("N").Substring(0, 12);
@@ -111,17 +145,6 @@ public class PaymentService : IPaymentService
 
         var orderId = orderIdElement.GetString()!;
 
-        // Persist payment intent
-        var snapshotItems = cartItems.Select(i => new
-        {
-            ProductId = i.ProductId,
-            ProductColorId = i.ProductColorId,
-            Quantity = i.Quantity,
-            PriceAtPurchase = i.Product?.Price ?? 0,
-            ColorNameSnapshot = i.ProductColor?.ColorName ?? i.Product?.DefaultColorName,
-            ColorHexSnapshot = i.ProductColor?.ColorHex ?? i.Product?.DefaultColorHex
-        }).ToList();
-
         var intent = new PaymentEntity
         {
             Id = Guid.NewGuid(),
@@ -129,6 +152,7 @@ public class PaymentService : IPaymentService
             UserId = userId,
             RazorpayOrderId = orderId,
             RazorpayPaymentId = null,
+            CheckoutKey = checkoutKey,
             Amount = total,
             Currency = "INR",
             Provider = "razorpay",
@@ -138,6 +162,7 @@ public class PaymentService : IPaymentService
         };
 
         await _payments.CreateAsync(intent);
+        await tx.CommitAsync();
 
         return new CreateRazorpayOrderResponseDto
         {
@@ -152,6 +177,78 @@ public class PaymentService : IPaymentService
                 TotalAmount = total
             }
         };
+    }
+
+    private CreateRazorpayOrderResponseDto CreateExistingIntentResponse(
+        PaymentEntity intent, decimal subtotal, decimal shippingCharge)
+    {
+        return new CreateRazorpayOrderResponseDto
+        {
+            OrderId = intent.RazorpayOrderId,
+            Amount = (int)Math.Round(intent.Amount * 100m),
+            Currency = intent.Currency,
+            Key = _opts.Key,
+            PaymentStatus = intent.Status,
+            ApplicationOrderId = intent.OrderId,
+            PaymentId = intent.RazorpayPaymentId,
+            CheckoutSummary = new CheckoutSummaryDto
+            {
+                Subtotal = subtotal,
+                ShippingCharge = shippingCharge,
+                TotalAmount = intent.Amount
+            }
+        };
+    }
+
+    private static string CreateCheckoutKey(IEnumerable<Cart> cartItems)
+    {
+        var identity = string.Join("|", cartItems
+            .OrderBy(i => i.Id)
+            .Select(i => $"{i.Id:N}:{i.ProductId:N}:{i.ProductColorId?.ToString("N") ?? "none"}:{i.Quantity}"));
+        using var sha = SHA256.Create();
+        return Convert.ToHexString(sha.ComputeHash(Encoding.UTF8.GetBytes(identity))).ToLowerInvariant();
+    }
+
+    private async Task AcquireCheckoutLockAsync(string checkoutKey)
+    {
+        var connection = _db.Database.GetDbConnection();
+        await using var command = connection.CreateCommand();
+        command.Transaction = _db.Database.CurrentTransaction?.GetDbTransaction();
+        command.CommandText = "SELECT pg_advisory_xact_lock(hashtextextended(@checkout_key, 0));";
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "checkout_key";
+        parameter.Value = checkoutKey;
+        command.Parameters.Add(parameter);
+        await command.ExecuteNonQueryAsync();
+    }
+
+    private static bool CartMatchesSnapshot(string? snapshotJson, IEnumerable<Cart> cartItems)
+    {
+        if (string.IsNullOrWhiteSpace(snapshotJson)) return false;
+        try
+        {
+            var snapshot = JsonSerializer.Deserialize<List<CartSnapshotIdentity>>(snapshotJson);
+            var current = cartItems
+                .OrderBy(i => i.ProductId)
+                .ThenBy(i => i.ProductColorId)
+                .Select(i => (i.ProductId, i.ProductColorId, i.Quantity));
+            var stored = snapshot?
+                .OrderBy(i => i.ProductId)
+                .ThenBy(i => i.ProductColorId)
+                .Select(i => (i.ProductId, i.ProductColorId, i.Quantity));
+            return stored != null && current.SequenceEqual(stored);
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
+
+    private sealed class CartSnapshotIdentity
+    {
+        public Guid ProductId { get; set; }
+        public Guid? ProductColorId { get; set; }
+        public int Quantity { get; set; }
     }
 
     public async Task<VerifyPaymentResponseDto> VerifyPaymentAsync(VerifyPaymentRequestDto dto, Guid userId)

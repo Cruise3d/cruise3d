@@ -285,6 +285,13 @@ export const CheckoutPage: React.FC = () => {
 
       const { key, orderId, amount, currency } = razorResp;
 
+      if (razorResp.paymentStatus === 'paid' && razorResp.applicationOrderId) {
+        useCartStore.getState().reset();
+        await useCartStore.getState().fetchCart();
+        navigate(`/orders/${razorResp.applicationOrderId}`);
+        return;
+      }
+
       if (!key || !orderId) {
         throw new Error('Payment initialization failed. Missing payment gateway configuration.');
       }
@@ -337,9 +344,8 @@ export const CheckoutPage: React.FC = () => {
             await verifyPaymentAttempt(verifyPayload);
 
           } catch {
-            setPendingVerification(null);
-            setErrors((prev) => ({ ...prev, submit: 'Payment could not be verified. Please try again.' }));
-            setPaymentStage('failed');
+            // verifyPaymentAttempt retains the signed payload for retry.
+            setPaymentStage('verification-pending');
           } finally {
             setIsProcessing(false);
             paymentActionLock.current = false;

@@ -596,6 +596,7 @@ Open the page in both modes during development. Do not ship a page you've only s
 
 Avoid these signatures unless the brief explicitly asks for them.
 
+
 ### 9.A Visual & CSS
 * **NO neon / outer glows** by default. Use inner borders or subtle tinted shadows.
 * **NO pure black (`#000000`).** Off-black, zinc-950, or charcoal.

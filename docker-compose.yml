@@ -56,6 +56,7 @@ services:
       Brevo__ApiKey: ${BREVO_API_KEY:-}
       Brevo__SenderEmail: ${BREVO_SENDER_EMAIL:-no-reply@cruise3d.com}
       Brevo__SenderName: ${BREVO_SENDER_NAME:-Cruise3D}
+      Brevo__AdminNotificationEmail: ${BREVO_ADMIN_NOTIFICATION_EMAIL:-}
       Brevo__EnabledInDevelopment: ${BREVO_ENABLED_IN_DEVELOPMENT:-false}
       EmailVerification__TokenLifetimeMinutes: ${EMAIL_VERIFICATION_TOKEN_LIFETIME_MINUTES:-1440}
       Razorpay__Key: ${RAZORPAY_KEY}

@@ -42,6 +42,8 @@ public class NotificationService : INotificationService
         if (code is null) return false;
         var name = code.ToString();
         return name == MessagingErrorCode.Unregistered.ToString()
+            || name.Equals("NotRegistered", StringComparison.OrdinalIgnoreCase)
+            || name.Equals("InvalidRegistration", StringComparison.OrdinalIgnoreCase)
             || name == MessagingErrorCode.SenderIdMismatch.ToString()
             || name == MessagingErrorCode.InvalidArgument.ToString();
     }

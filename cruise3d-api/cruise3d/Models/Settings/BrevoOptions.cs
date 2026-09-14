@@ -5,5 +5,6 @@ public class BrevoOptions
     public string ApiKey { get; set; } = string.Empty;
     public string SenderEmail { get; set; } = string.Empty;
     public string SenderName { get; set; } = "Cruise3D";
+    public string AdminNotificationEmail { get; set; } = string.Empty; 
     public bool EnabledInDevelopment { get; set; }
 }

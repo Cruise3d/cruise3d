@@ -49,17 +49,17 @@ const featureSteps = [
 
 type ContactCard =
   | {
-      icon: string;
-      title: string;
-      value: string;
-      href: string;
-    }
+    icon: string;
+    title: string;
+    value: string;
+    href: string;
+  }
   | {
-      icon: string;
-      title: string;
-      value: string | string[];
-      href?: undefined;
-    };
+    icon: string;
+    title: string;
+    value: string | string[];
+    href?: undefined;
+  };
 
 const contactCards: ContactCard[] = [
   {
@@ -158,11 +158,11 @@ export default function HomePage() {
     <div className="overflow-hidden" style={{ backgroundColor: colors.background.page }}>
       {/* Hero Section */}
       <section
-        className="relative overflow-hidden border-b bg-white pb-4 pt-6 px-4 sm:pb-4 sm:pt-8 md:px-6"
+        className="relative overflow-hidden border-b bg-white px-4 py-1 sm:px-6 sm:py-2 md:px-8"
         style={{ borderColor: colors.border.DEFAULT }}
       >
         <div
-          className="relative mx-auto h-[300px] max-w-[1180px] min-w-0 overflow-hidden rounded-2xl border shadow-lg sm:h-[400px] lg:h-[440px]"
+          className="relative mx-auto h-[260px] max-w-[1180px] min-w-0 overflow-hidden rounded-2xl border shadow-lg sm:h-[320px] lg:h-[380px]"
           onMouseEnter={() => setIsHeroPaused(true)}
           onMouseLeave={() => setIsHeroPaused(false)}
           onFocus={() => setIsHeroPaused(true)}
@@ -175,33 +175,38 @@ export default function HomePage() {
               src={slide.image}
               alt={slide.alt}
               aria-hidden={activeHeroSlide !== index}
-              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-                activeHeroSlide === index ? 'opacity-100' : 'opacity-0'
-              }`}
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${activeHeroSlide === index ? 'opacity-100' : 'opacity-0'
+                }`}
+              style={{ objectPosition: '50% 50%' }}
             />
           ))}
 
-          <div className="absolute inset-0 z-[5] bg-black/35" />
-          <div className="absolute inset-x-5 bottom-12 z-[6] max-w-[34rem] text-white sm:inset-x-10 sm:bottom-16 lg:inset-x-16 lg:bottom-20">
+          <div className="absolute inset-0 z-[5] bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+
+          <div className="absolute inset-x-6 bottom-6 z-[6] max-w-[34rem] text-white sm:inset-x-10 sm:bottom-8 lg:inset-x-12 lg:bottom-10">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75 sm:text-xs sm:tracking-[0.22em]">
               Precision in every layer
             </p>
-            <h1 className="mt-2 max-w-[19rem] text-2xl font-extrabold leading-[1.05] tracking-tight sm:mt-3 sm:max-w-[27rem] sm:text-4xl lg:text-5xl">
+            <h1 className="mt-2 text-2xl font-extrabold leading-[1.05] tracking-tight sm:mt-3 sm:text-4xl lg:text-5xl">
               Precision objects, printed to stand out
             </h1>
-            <p className="mt-3 max-w-[19rem] text-xs leading-5 text-white/85 sm:mt-4 sm:max-w-md sm:text-base sm:leading-6">
+            <p className="mt-2 text-xs leading-5 text-white/85 sm:mt-3 sm:text-base sm:leading-6">
               Explore engineered 3D-printed pieces made for curious spaces and considered collections.
             </p>
             <Link
               to="/products"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-[#1a1a1a] transition hover:-translate-y-0.5 hover:bg-white/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:mt-6 sm:px-5 sm:py-3"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-[#1a1a1a] transition hover:-translate-y-0.5 hover:bg-white/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:mt-5 sm:px-5 sm:py-3"
             >
               Shop products
               <span className="material-symbols-outlined text-base">arrow_forward</span>
             </Link>
           </div>
 
-          <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2" role="tablist" aria-label="Hero slides">
+          <div
+            className="absolute right-4 top-4 z-10 flex items-center gap-2 sm:right-6 sm:top-6"
+            role="tablist"
+            aria-label="Hero slides"
+          >
             {heroSlides.map((slide, index) => (
               <button
                 key={slide.image}
@@ -210,9 +215,8 @@ export default function HomePage() {
                 aria-label={`Show hero slide ${index + 1}`}
                 aria-selected={activeHeroSlide === index}
                 onClick={() => setActiveHeroSlide(index)}
-                className={`h-2.5 rounded-full border border-white/70 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
-                  activeHeroSlide === index ? 'w-8 bg-white' : 'w-2.5 bg-white/45 hover:bg-white/80'
-                }`}
+                className={`h-2 rounded-full border border-white/70 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${activeHeroSlide === index ? 'w-8 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'
+                  }`}
               />
             ))}
           </div>
@@ -221,13 +225,13 @@ export default function HomePage() {
 
       {/* Category Showcase Section */}
       <section
-        className="border-b pb-5 pt-5 sm:pt-8 md:pt-5 lg:pt-5"
+        className="border-b pb-2 pt-2 sm:pb-3 sm:pt-6"
         style={{
           backgroundColor: colors.background.page,
           borderColor: colors.border.DEFAULT,
         }}
       >
-        <div className="mx-auto max-w-[1280px] space-y-10 px-6">
+        <div className="mx-auto max-w-[1280px] space-y-8 px-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p
@@ -321,21 +325,21 @@ export default function HomePage() {
         <div className="mx-auto max-w-[1280px] px-6 space-y-12">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p 
+              <p
                 className="text-xs font-semibold uppercase tracking-[0.25em]"
                 style={{ color: colors.primary.DEFAULT }}
               >
                 Curated Objects
               </p>
-              <h2 
+              <h2
                 className="mt-2 text-3xl font-extrabold sm:text-4xl tracking-tight"
                 style={{ color: colors.text.primary }}
               >
                 Featured Additive Creations
               </h2>
             </div>
-            <Link 
-              to="/products" 
+            <Link
+              to="/products"
               className="inline-flex items-center gap-1 text-sm font-semibold transition"
               style={{
                 color: colors.text.secondary,
@@ -370,7 +374,7 @@ export default function HomePage() {
       </section>
 
       {/* Process Section */}
-      <section 
+      <section
         className="border-b border-t bg-white py-5 sm:py-5"
         style={{
           borderColor: colors.border.DEFAULT,
@@ -379,13 +383,13 @@ export default function HomePage() {
       >
         <div className="mx-auto max-w-[1280px] px-6 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span 
+            <span
               className="text-xs font-semibold uppercase tracking-[0.25em]"
               style={{ color: colors.primary.DEFAULT }}
             >
               How We Build
             </span>
-            <h2 
+            <h2
               className="text-3xl font-extrabold sm:text-4xl tracking-tight"
               style={{ color: colors.text.primary }}
             >
@@ -395,14 +399,14 @@ export default function HomePage() {
 
           <div className="relative grid gap-0 border-y lg:grid-cols-3" style={{ borderColor: colors.border.DEFAULT }}>
             {featureSteps.map((step, index) => (
-              <div 
-                key={step.title} 
+              <div
+                key={step.title}
                 className="relative space-y-5 border-b p-6 last:border-b-0 sm:p-8 lg:border-b-0 lg:border-r lg:last:border-r-0"
                 style={{
                   borderColor: colors.border.DEFAULT,
                 }}
               >
-                <div 
+                <div
                   className="flex h-10 w-10 items-center justify-center rounded-lg text-white"
                   style={{
                     backgroundColor: colors.primary.DEFAULT,
@@ -427,11 +431,11 @@ export default function HomePage() {
       </section>
 
       {/* Newsletter Section */}
-      <section 
+      <section
         className="relative overflow-hidden py-10 text-white"
         style={{ backgroundColor: colors.primary[900] }}
       >
-        <div 
+        <div
           className="absolute -right-28 top-0 h-64 w-64 rounded-full blur-3xl"
           style={{
             backgroundColor: colors.primary[500],
