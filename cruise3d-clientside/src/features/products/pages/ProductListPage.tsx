@@ -31,7 +31,8 @@ export default function ProductListPage() {
     let cancelled = false;
     setIsLoading(true);
     setError(null);
-    getProducts({ categoryId })
+    setCurrentPage(1);
+    getProducts({ categoryId, page: 1, pageSize: 1000 })
       .then((list) => {
         if (cancelled) return;
         setProducts(list);
