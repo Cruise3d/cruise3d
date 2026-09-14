@@ -71,7 +71,25 @@ builder.Services.AddScoped<IPasswordResetTokenService, PasswordResetTokenService
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IContactMessageService, ContactMessageService>();
 
-builder.Services.Configure<BrevoOptions>(builder.Configuration.GetSection("Brevo"));
+builder.Services.Configure<BrevoOptions>(options =>
+{
+    builder.Configuration.GetSection("Brevo").Bind(options);
+
+    // Support both ASP.NET's hierarchical names (Brevo__ApiKey) and the
+    // conventional deployment variables used by Docker/hosting platforms.
+    options.ApiKey = FirstConfiguredValue(
+        builder.Configuration["BREVO_API_KEY"],
+        options.ApiKey);
+    options.SenderEmail = FirstConfiguredValue(
+        builder.Configuration["BREVO_SENDER_EMAIL"],
+        options.SenderEmail);
+    options.SenderName = FirstConfiguredValue(
+        builder.Configuration["BREVO_SENDER_NAME"],
+        options.SenderName);
+    options.AdminNotificationEmail = FirstConfiguredValue(
+        builder.Configuration["BREVO_ADMIN_NOTIFICATION_EMAIL"],
+        options.AdminNotificationEmail);
+});
 builder.Services.Configure<EmailVerificationOptions>(builder.Configuration.GetSection("EmailVerification"));
 builder.Services.Configure<PasswordResetOptions>(builder.Configuration.GetSection("PasswordReset"));
 builder.Services.AddHttpClient<IBrevoEmailService, BrevoEmailService>(client =>
@@ -255,3 +273,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+static string FirstConfiguredValue(string? configuredValue, string? fallbackValue) =>
+    string.IsNullOrWhiteSpace(configuredValue) ? fallbackValue ?? string.Empty : configuredValue;

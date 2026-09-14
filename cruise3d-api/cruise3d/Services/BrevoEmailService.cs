@@ -150,18 +150,20 @@ namespace cruise3d.API.Services
                 }, options: new JsonSerializerOptions(JsonSerializerDefaults.Web))
             };
 
-            request.Headers.TryAddWithoutValidation("api-key", _options.ApiKey);
+            request.Headers.Add("api-key", _options.ApiKey.Trim());
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             using var response = await _httpClient.SendAsync(request, cancellationToken);
             if (response.IsSuccessStatusCode)
                 return;
 
+            var providerMessage = await response.Content.ReadAsStringAsync(cancellationToken);
             _logger.LogError(
-                "Brevo email ({Subject}) failed with status {StatusCode}.",
-                subject, (int)response.StatusCode);
+                "Brevo email ({Subject}) failed with status {StatusCode}: {ProviderMessage}",
+                subject, (int)response.StatusCode, providerMessage);
 
-            throw new InvalidOperationException("Brevo email request failed.");
+            throw new InvalidOperationException(
+                $"Brevo email request failed with status {(int)response.StatusCode}.");
         }
 
         // ─── Development skip guard ───────────────────────────────────────────
