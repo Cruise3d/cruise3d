@@ -9,6 +9,7 @@ export interface ProductGridProps {
   isLoading?: boolean;
   onAddToCart?: (product: Product) => void;
   onClearFilters?: () => void;
+  compactDesktop?: boolean;
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
@@ -16,6 +17,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   isLoading = false,
   onAddToCart,
   onClearFilters,
+  compactDesktop = false,
 }) => {
   if (isLoading) {
     return (
@@ -46,12 +48,17 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   }
 
   return (
-    <div className="grid w-full grid-cols-2 gap-3 sm:gap-5">
+    <div
+      className={`grid w-full grid-cols-2 gap-3 sm:gap-5 ${
+        compactDesktop ? 'lg:max-w-4xl lg:grid-cols-4 lg:gap-4' : ''
+      }`}
+    >
       {products.map((product) => (
         <ProductCard
           key={product.id}
           product={product}
           onAddToCart={onAddToCart}
+          compactDesktop={compactDesktop}
         />
       ))}
     </div>

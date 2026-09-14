@@ -353,22 +353,22 @@ export default function ProductDetailPage() {
             )}
 
             {/* Quantity + actions */}
-            <div className="flex items-center gap-3">
+            <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:gap-3">
               <div
-                className="flex items-center rounded-xl p-1"
+                className="flex shrink-0 items-center rounded-xl p-1"
                 style={{ border: `1px solid ${colors.border.DEFAULT}`, backgroundColor: colors.surface.low }}
               >
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer"
+                  className="flex h-9 w-8 items-center justify-center rounded-lg transition-colors cursor-pointer sm:w-9"
                   style={{ color: colors.text.secondary }}
                   aria-label="Decrease quantity"
                 >
                   <span className="material-symbols-outlined text-base">remove</span>
                 </button>
                 <span
-                  className="w-10 text-center font-bold text-sm tabular-nums"
+                  className="w-7 text-center text-sm font-bold tabular-nums sm:w-10"
                   style={{ color: colors.text.primary }}
                 >
                   {quantity}
@@ -376,7 +376,7 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={() => setQuantity((q) => q + 1)}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer"
+                  className="flex h-9 w-8 items-center justify-center rounded-lg transition-colors cursor-pointer sm:w-9"
                   style={{ color: colors.text.secondary }}
                   aria-label="Increase quantity"
                 >
@@ -390,7 +390,7 @@ export default function ProductDetailPage() {
                 icon="add_shopping_cart"
                 disabled={!product.inStock}
                 onClick={handleAddToCart}
-                className="flex-1"
+                className="min-w-0 w-full px-2 text-sm sm:flex-1 sm:px-5 sm:text-base"
               >
                 {product.inStock ? 'Add to cart' : 'Unavailable'}
               </Button>
@@ -398,7 +398,7 @@ export default function ProductDetailPage() {
               <button
                 type="button"
                 onClick={() => setIsWishlisted((v) => !v)}
-                className="w-12 h-12 rounded-xl flex items-center justify-center transition-all cursor-pointer"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all cursor-pointer sm:h-12 sm:w-12"
                 style={{
                   border: `1px solid ${isWishlisted ? colors.status.error.DEFAULT : colors.border.DEFAULT}`,
                   backgroundColor: isWishlisted ? colors.status.error.light : colors.surface.DEFAULT,

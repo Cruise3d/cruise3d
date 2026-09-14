@@ -368,7 +368,7 @@ export default function HomePage() {
               Featured products will appear here once added from the admin page.
             </p>
           ) : (
-            <ProductGrid products={featured} />
+            <ProductGrid products={featured} compactDesktop />
           )}
         </div>
       </section>

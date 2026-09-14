@@ -125,6 +125,8 @@ namespace cruise3d.API.Repositories
             return await _db.Products
                 .Include(p => p.Images.Where(i => i.IsPrimary))
                 .Include(p => p.Category)
+                .Include(p => p.Reviews)
+                .AsNoTracking()
                 .Where(p => p.IsFeatured && p.IsActive)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
@@ -135,6 +137,8 @@ namespace cruise3d.API.Repositories
             return await _db.Products
                 .Include(p => p.Images.Where(i => i.IsPrimary))
                 .Include(p => p.Category)
+                .Include(p => p.Reviews)
+                .AsNoTracking()
                 .Where(p => p.IsBestseller && p.IsActive)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();

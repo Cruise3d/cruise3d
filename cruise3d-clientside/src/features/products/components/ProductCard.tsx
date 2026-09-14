@@ -8,12 +8,17 @@ import { Button } from '../../../components/ui/Button';
 export interface ProductCardProps {
   product: Product;
   onAddToCart?: (product: Product) => void;
+  compactDesktop?: boolean;
 }
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onAddToCart,
+  compactDesktop = false,
+}) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageError, setImageError] = useState(false);
   const { colors, shadows } = theme;
@@ -32,7 +37,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   return (
     <Link
       to={detailPath}
-      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100/80 bg-white p-3 transition-all duration-300 hover:-translate-y-0.5 sm:p-4"
+      className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100/80 bg-white p-3 transition-all duration-300 hover:-translate-y-0.5 sm:p-4 ${
+        compactDesktop ? 'lg:p-3' : ''
+      }`}
       style={{
         boxShadow: shadows.DEFAULT,
       }}
@@ -45,7 +52,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
     >
       <div>
         {/* Image Container */}
-        <div className="relative mb-3 flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-xl bg-slate-50 sm:mb-4">
+        <div
+          className={`relative mb-3 flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-xl bg-slate-50 sm:mb-4 ${
+            compactDesktop ? 'lg:mb-3 lg:aspect-[3/2]' : ''
+          }`}
+        >
           <img
             src={imageSrc}
             alt={product.title}
@@ -105,17 +116,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
         </div>
 
         {/* Product Details */}
-        <div className="space-y-2">
-          <div
-            className="flex items-center gap-1 text-[11px] font-medium"
-            style={{ color: colors.status.warning.DEFAULT }}
-          >
-            <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-              star
-            </span>
-            <span style={{ color: colors.text.primary }}>{product.rating.toFixed(1)}</span>
-            <span style={{ color: colors.text.tertiary }}>({product.reviewCount})</span>
-          </div>
+        <div className={`space-y-2 ${compactDesktop ? 'lg:space-y-1.5' : ''}`}>
+          {product.reviewCount > 0 ? (
+            <div
+              className="inline-flex max-w-full items-center gap-1 whitespace-nowrap text-[10px] font-medium sm:text-[11px]"
+              aria-label={`${product.rating.toFixed(1)} rating from ${product.reviewCount} reviews`}
+              style={{ color: colors.status.warning.DEFAULT }}
+            >
+              <span className="material-symbols-outlined shrink-0 text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                star
+              </span>
+              <span style={{ color: colors.text.primary }}>{product.rating.toFixed(1)}</span>
+              <span style={{ color: colors.text.tertiary }}>({product.reviewCount})</span>
+            </div>
+          ) : (
+            <div
+              className="inline-flex max-w-full items-center gap-1 whitespace-nowrap text-[10px] font-medium sm:text-[11px]"
+              style={{ color: colors.status.warning.DEFAULT }}
+            >
+              <span className="material-symbols-outlined shrink-0 text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                star
+              </span>
+              <span style={{ color: colors.text.secondary }}>No reviews yet</span>
+            </div>
+          )}
 
           <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-2">
             <h3
@@ -132,7 +156,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
       </div>
 
       {/* Keep the cart action at the bottom of every card. */}
-      <div className="mt-4">
+      <div className={`mt-4 ${compactDesktop ? 'lg:mt-3' : ''}`}>
         <Button
           variant="primary"
           size="md"

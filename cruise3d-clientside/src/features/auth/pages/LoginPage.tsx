@@ -222,30 +222,6 @@ export const LoginPage: React.FC = () => {
               Sign In
             </Button>
           </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-surface-container-highest" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-surface-container-low px-2 text-on-surface-variant">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          {/* Social Login Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" className="w-full">
-              <span className="material-symbols-outlined">flutter_dash</span>
-              Google
-            </Button>
-            <Button variant="outline" className="w-full">
-              <span className="material-symbols-outlined">code</span>
-              GitHub
-            </Button>
-          </div>
         </div>
 
         {/* Sign Up Link */}
@@ -264,4 +240,3 @@ export const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
-
