@@ -49,7 +49,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
 
   return (
     <div
-      className={`grid w-full grid-cols-2 gap-3 sm:gap-5 ${
+      className={`grid w-full grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 ${
         compactDesktop ? 'lg:max-w-4xl lg:grid-cols-4 lg:gap-4' : ''
       }`}
     >

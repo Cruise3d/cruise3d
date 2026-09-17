@@ -213,7 +213,7 @@ export default function ProductDetailPage() {
         </div>
       )}
 
-      <div className="mx-auto max-w-[1280px] px-6 py-10 space-y-14">
+      <div className="mx-auto max-w-[1160px] px-4 py-8 sm:px-6 sm:py-10 space-y-12">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-medium" style={{ color: colors.text.tertiary }}>
           <Link to="/" className="transition-colors hover:text-[color:var(--crumb-hover)]" style={{ color: colors.text.secondary }}>
@@ -232,9 +232,9 @@ export default function ProductDetailPage() {
         </nav>
 
         {/* Hero */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,560px)_minmax(420px,1fr)] lg:gap-12">
           {/* Gallery */}
-          <div className="lg:col-span-7">
+          <div className="w-full lg:max-w-[560px]">
             <ProductGallery
               images={product.images.length > 0 ? product.images : [FALLBACK_IMAGE]}
               title={product.title}
@@ -244,7 +244,7 @@ export default function ProductDetailPage() {
 
           {/* Buy panel */}
           <div
-            className="lg:col-span-5 p-8 rounded-3xl space-y-7 self-start lg:sticky lg:top-28"
+            className="rounded-3xl p-7 space-y-5 self-start lg:sticky lg:top-28"
             style={{
               backgroundColor: colors.surface.DEFAULT,
               border: `1px solid ${colors.border.DEFAULT}`,
@@ -283,7 +283,7 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Title block */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <h1
                 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight"
                 style={{ color: colors.text.primary }}
@@ -413,7 +413,7 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Trust badges */}
-            <div className="grid grid-cols-3 gap-3 pt-2">
+            <div className="grid grid-cols-3 gap-2.5 pt-1">
               {[
                 { icon: 'local_shipping', label: 'Free express', sub: 'On orders over ₹500' },
                 { icon: 'verified', label: 'Micron precision', sub: '±0.05 mm tolerance' },
@@ -421,7 +421,7 @@ export default function ProductDetailPage() {
               ].map((badge) => (
                 <div
                   key={badge.label}
-                  className="rounded-2xl p-3 text-center space-y-1"
+                  className="rounded-2xl p-2.5 text-center space-y-1"
                   style={{
                     backgroundColor: colors.surface.low,
                     border: `1px solid ${colors.border.light}`,

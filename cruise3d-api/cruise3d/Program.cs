@@ -1,12 +1,18 @@
+using System.Globalization;
+using System.Net;
 using System.Text;
+using System.Threading.RateLimiting;
 using cruise3d.API.Data;
 using cruise3d.API.Middleware;
+using cruise3d.API.Models.DTOs.Common;
 using cruise3d.API.Repositories;
 using cruise3d.API.Repositories.Interfaces;
 using cruise3d.API.Services;
 using cruise3d.API.Services.Interfaces;
 using cruise3d.Models.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -36,6 +42,45 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+
+// ─── FORWARDED HEADERS ───────────────────────────────────────────────────────
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 1;
+
+    foreach (var proxy in builder.Configuration
+        .GetSection("ForwardedHeaders:KnownProxies")
+        .Get<string[]>() ?? [])
+    {
+        options.KnownProxies.Add(IPAddress.Parse(proxy));
+    }
+});
+
+// ─── RATE LIMITING ───────────────────────────────────────────────────────────
+var rateLimitingConfiguration = builder.Configuration.GetSection("RateLimiting");
+builder.Services.AddRateLimiter(options =>
+{
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json";
+
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter =
+                Math.Ceiling(retryAfter.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+        }
+
+        var response = ApiResponse<string>.Fail("Too many requests. Please try again later.");
+        await context.HttpContext.Response.WriteAsJsonAsync(response, cancellationToken);
+    };
+
+    AddFixedWindowPolicy(options, "Login", rateLimitingConfiguration);
+    AddFixedWindowPolicy(options, "Register", rateLimitingConfiguration);
+    AddFixedWindowPolicy(options, "ResendVerification", rateLimitingConfiguration);
+    AddFixedWindowPolicy(options, "VerifyEmail", rateLimitingConfiguration);
+});
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 builder.Services.AddCors(opt => opt.AddPolicy("AllowFrontend", p =>
@@ -267,12 +312,35 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseForwardedHeaders();
 app.UseCors("AllowFrontend");
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+static void AddFixedWindowPolicy(
+    RateLimiterOptions options,
+    string policyName,
+    IConfigurationSection configuration)
+{
+    var policyConfiguration = configuration.GetSection(policyName);
+    var permitLimit = policyConfiguration.GetValue<int>("PermitLimit");
+    var windowSeconds = policyConfiguration.GetValue<int>("WindowSeconds");
+
+    options.AddPolicy(policyName, context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromSeconds(windowSeconds),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
+}
 
 static string FirstConfiguredValue(string? configuredValue, string? fallbackValue) =>
     string.IsNullOrWhiteSpace(configuredValue) ? fallbackValue ?? string.Empty : configuredValue;

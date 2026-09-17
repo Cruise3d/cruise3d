@@ -4,6 +4,7 @@ using cruise3d.API.Models.DTOs.Common;
 using cruise3d.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace cruise3d.API.Controllers;
 
@@ -19,6 +20,7 @@ public class AuthController : ControllerBase
     // POST api/auth/register
     // Public — anyone can register
     [HttpPost("register")]
+    [EnableRateLimiting("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         var result = await _auth.RegisterAsync(dto);
@@ -28,6 +30,7 @@ public class AuthController : ControllerBase
     // POST api/auth/login
     // Public — admin and customer both use this same endpoint
     [HttpPost("login")]
+    [EnableRateLimiting("Login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         var result = await _auth.LoginAsync(dto);
@@ -59,6 +62,7 @@ public class AuthController : ControllerBase
     // POST api/auth/verify-email
     // Public — verifies token sent to user's email
     [HttpPost("verify-email")]
+    [EnableRateLimiting("VerifyEmail")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequestDto dto)
     {
         await _auth.VerifyEmailAsync(dto.Token);
@@ -68,6 +72,7 @@ public class AuthController : ControllerBase
     // POST api/auth/resend-verification
     // Public — resends verification email
     [HttpPost("resend-verification")]
+    [EnableRateLimiting("ResendVerification")]
     public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationEmailRequestDto dto)
     {
         await _auth.ResendVerificationEmailAsync(dto.Email);
@@ -92,5 +97,4 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<string>.Ok(string.Empty, "Password has been reset successfully. You can now sign in with your new password."));
     }
 }
-
 

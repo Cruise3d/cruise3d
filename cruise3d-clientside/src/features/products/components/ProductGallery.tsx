@@ -28,12 +28,12 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({
   return (
     <div className="space-y-4 w-full">
       {/* Main Image Display */}
-      <div className="relative aspect-4/3 sm:aspect-square w-full rounded-2xl bg-slate-50 border border-gray-100 overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] group">
+      <div className="relative aspect-square w-full rounded-2xl bg-slate-50 border border-gray-100 overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] group">
         <img
           src={imageError[selectedIndex] ? fallbackImage : images[selectedIndex] || fallbackImage}
           alt={`${title} - view ${selectedIndex + 1}`}
           onError={() => setImageError((prev) => ({ ...prev, [selectedIndex]: true }))}
-          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105"
         />
 
         {/* Badge Overlay */}

@@ -66,6 +66,10 @@ services:
       - ./secrets:/app/secrets:ro
     ports:
       - "5001:8080"
+    networks:
+      default: {}
+      backend:
+        ipv4_address: 172.30.0.3
     depends_on:
       postgres:
         condition: service_healthy
@@ -85,6 +89,9 @@ services:
         VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID}
         VITE_FIREBASE_VAPID_KEY: ${VITE_FIREBASE_VAPID_KEY}
     image: cruise3d-frontend:prod
+    networks:
+      backend:
+        ipv4_address: 172.30.0.2
     ports:
       - "80:80"
     restart: unless-stopped
@@ -127,3 +134,10 @@ services:
 volumes:
   postgres_data:
   app_node_modules:
+
+networks:
+  backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
