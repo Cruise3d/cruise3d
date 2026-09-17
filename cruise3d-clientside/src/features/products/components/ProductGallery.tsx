@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { clsx } from 'clsx';
+import { getDefaultProductImage } from '../../../lib/productImage';
 
 export interface ProductGalleryProps {
   images: string[];
@@ -15,8 +16,6 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [imageError, setImageError] = useState<Record<number, boolean>>({});
 
-  const fallbackImage = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
-
   const handlePrev = () => {
     setSelectedIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
@@ -30,7 +29,7 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({
       {/* Main Image Display */}
       <div className="relative aspect-square w-full rounded-2xl bg-slate-50 border border-gray-100 overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] group">
         <img
-          src={imageError[selectedIndex] ? fallbackImage : images[selectedIndex] || fallbackImage}
+          src={imageError[selectedIndex] ? getDefaultProductImage() : images[selectedIndex] || getDefaultProductImage()}
           alt={`${title} - view ${selectedIndex + 1}`}
           onError={() => setImageError((prev) => ({ ...prev, [selectedIndex]: true }))}
           className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105"
@@ -87,7 +86,7 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({
                 )}
               >
                 <img
-                  src={imageError[idx] ? fallbackImage : img}
+                  src={imageError[idx] ? getDefaultProductImage() : img}
                   alt={`Thumbnail ${idx + 1}`}
                   onError={() => setImageError((prev) => ({ ...prev, [idx]: true }))}
                   className="w-full h-full object-cover"

@@ -156,7 +156,7 @@ cruise3d-clientside/
 
 The Cruise3D interface is engineered around the **Kinetic Precision** design system — evoking high-fidelity additive craftsmanship and industrial sophistication.
 
-All design tokens are centralized in [`src/styles/theme.ts`](file:///c:/cruise3D/cruise3d-clientside/src/styles/theme.ts).
+All design tokens are centralized in [`src/styles/theme.ts`](src/styles/theme.ts).
 
 ### 5.1 Color Palette
 - **Primary / Dark Accent:** `#1a1a1a` (Charcoal / Solid Action) with hover `#0d0d0d`.

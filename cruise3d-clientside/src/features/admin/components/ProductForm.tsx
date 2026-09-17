@@ -12,6 +12,7 @@ import {
 import { fetchCloudinarySignature } from '../api'
 import type { AdminProduct } from '../types'
 import { theme } from '../../../styles/theme'
+import { getDefaultProductImage } from '../../../lib/productImage'
 
 declare global {
   interface Window {
@@ -1291,7 +1292,7 @@ export default function ProductForm({ editingProduct, onSuccess, onCancel }: Pro
                       style={{ backgroundColor: colors.surface.DEFAULT }}
                     >
                       <img
-                        src={image.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=200&q=80'}
+                        src={image.url || getDefaultProductImage(200)}
                         alt="Product preview"
                         className="h-full w-full object-cover"
                       />

@@ -4,15 +4,13 @@ import { Link } from 'react-router-dom';
 import type { Product } from '../types';
 import { theme } from '../../../styles/theme';
 import { Button } from '../../../components/ui/Button';
+import { getDefaultProductImage } from '../../../lib/productImage';
 
 export interface ProductCardProps {
   product: Product;
   onAddToCart?: (product: Product) => void;
   compactDesktop?: boolean;
 }
-
-const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
@@ -23,8 +21,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const [imageError, setImageError] = useState(false);
   const { colors, shadows } = theme;
 
-  const primaryImage = product.images?.[0] ?? FALLBACK_IMAGE;
-  const imageSrc = imageError ? FALLBACK_IMAGE : primaryImage;
+  const primaryImage = product.images?.[0] ?? getDefaultProductImage();
+  const imageSrc = imageError ? getDefaultProductImage() : primaryImage;
   const detailPath = `/products/${product.id}`;
 
   // Stop the parent <Link> from navigating when the user clicks

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { CartItem } from '../types';
 import { useCartStore } from '../useCartStore';
+import { getDefaultProductImage } from '../../../lib/productImage';
 
 export interface CartItemRowProps {
   item: CartItem;
@@ -9,8 +10,7 @@ export interface CartItemRowProps {
 export const CartItemRow: React.FC<CartItemRowProps> = ({ item }) => {
   const { updateQuantity, removeItem } = useCartStore();
   const lineTotal = item.priceAtAddition * item.quantity;
-  const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
-  const imageSrc = item.product.images?.[0] ?? FALLBACK_IMAGE;
+  const imageSrc = item.product.images?.[0] ?? getDefaultProductImage();
 
   return (
     <tr className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">

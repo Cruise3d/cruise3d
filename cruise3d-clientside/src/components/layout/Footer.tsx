@@ -49,7 +49,7 @@ export default function Footer() {
         </div>
 
         <div className="text-sm text-center md:text-right" style={{ color: colors.text.secondary }}>
-          Copyright 2024 ToyCart. PRECISION ENGINEERED.
+          Copyright 2026 ToyCart. PRECISION ENGINEERED.
         </div>
       </div>
     </footer>

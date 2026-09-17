@@ -3,13 +3,12 @@ import { Link } from 'react-router-dom';
 import { useCartStore } from '../useCartStore';
 import { Button } from '../../../components/ui/Button';
 import { theme } from '../../../styles/theme';
+import { getDefaultProductImage } from '../../../lib/productImage';
 
 export const CartDrawer: React.FC = () => {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal } = useCartStore();
   const subtotal = getSubtotal();
   const { colors, shadows } = theme;
-
-  const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
 
   const shipping = subtotal > 150 || subtotal === 0 ? 0 : 20.0;
   const tax = subtotal * 0.05;
@@ -123,7 +122,7 @@ export const CartDrawer: React.FC = () => {
                         style={{ backgroundColor: colors.surface.container }}
                       >
                         <img
-                          src={item.product.images?.[0] ?? FALLBACK_IMAGE}
+                          src={item.product.images?.[0] ?? getDefaultProductImage()}
                           alt={item.product.title}
                           className="h-full w-full object-cover"
                         />

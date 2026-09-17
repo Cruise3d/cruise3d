@@ -11,6 +11,7 @@ import type { Address, AddressId, CreateAddressRequest } from '../../profile/typ
 import type {
   ShippingAddress,
 } from '../types';
+import { getDefaultProductImage } from '../../../lib/productImage';
 
 const initialShippingAddress: ShippingAddress = {
   fullName: '',
@@ -69,8 +70,6 @@ export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { items, getSubtotal } = useCartStore();
   const { user } = useAuthStore();
-  const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
-
   const [currentStep, setCurrentStep] = useState<CheckoutStep>('shipping');
   const [completedSteps, setCompletedSteps] = useState<CheckoutStep[]>([]);
 
@@ -539,7 +538,7 @@ export const CheckoutPage: React.FC = () => {
           >
             <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-surface-container">
               <img
-                src={item.product.images?.[0] ?? FALLBACK_IMAGE}
+                src={item.product.images?.[0] ?? getDefaultProductImage()}
                 alt={item.product.title}
                 className="h-full w-full object-cover"
               />
@@ -830,7 +829,7 @@ export const CheckoutPage: React.FC = () => {
                   <div key={item.id} className="flex gap-3">
                     <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg bg-surface-container">
                       <img
-                        src={item.product.images?.[0] ?? FALLBACK_IMAGE}
+                        src={item.product.images?.[0] ?? getDefaultProductImage()}
                         alt={item.product.title}
                         className="h-full w-full object-cover"
                       />

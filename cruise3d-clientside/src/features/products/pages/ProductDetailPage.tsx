@@ -13,10 +13,7 @@ import { useAuthStore } from '../../../app/store/authStore';
 import type { Review } from '../../reviews/types';
 import { theme } from '../../../styles/theme';
 import type { Product } from '../types';
-
-
-const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
+import { getDefaultProductImage } from '../../../lib/productImage';
 
 function formatReviewDate(value: string): string {
   return new Date(value).toLocaleDateString('en-US', {
@@ -236,7 +233,7 @@ export default function ProductDetailPage() {
           {/* Gallery */}
           <div className="w-full lg:max-w-[560px]">
             <ProductGallery
-              images={product.images.length > 0 ? product.images : [FALLBACK_IMAGE]}
+              images={product.images.length > 0 ? product.images : [getDefaultProductImage()]}
               title={product.title}
               badge={product.technology ?? undefined}
             />

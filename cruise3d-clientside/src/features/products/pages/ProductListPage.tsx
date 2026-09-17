@@ -10,6 +10,7 @@ import { Button } from '../../../components/ui/Button';
 import { Modal } from '../../../components/ui/Modal';
 import { theme } from '../../../styles/theme';
 import { useCartStore } from '../../cart/useCartStore';
+import { getDefaultProductImage } from '../../../lib/productImage';
 
 function uniqueSorted(values: string[]): string[] {
   return Array.from(new Set(values.filter(Boolean))).sort((a, b) =>
@@ -411,7 +412,7 @@ export default function ProductListPage() {
               style={{ backgroundColor: colors.surface.container }}
             >
               <img
-                src={selectedProduct.images?.[0] ?? 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80'}
+                src={selectedProduct.images?.[0] ?? getDefaultProductImage()}
                 alt={selectedProduct.title}
                 className="w-full h-full object-cover"
               />

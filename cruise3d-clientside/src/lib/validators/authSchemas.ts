@@ -1,15 +1,17 @@
 import { z } from 'zod';
 
+const passwordLengthSchema = z.string().min(6, 'Password must be at least 6 characters');
+
 export const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email address'),
-  password: z.string().min(1, 'Password is required').min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(1, 'Password is required').pipe(passwordLengthSchema),
   rememberMe: z.boolean().optional(),
 });
 
 export const registerSchema = z.object({
   name: z.string().min(1, 'Name is required').min(2, 'Name must be at least 2 characters'),
   email: z.string().min(1, 'Email is required').email('Invalid email address'),
-  password: z.string().min(1, 'Password is required').min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(1, 'Password is required').pipe(passwordLengthSchema),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
   phone: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -22,7 +24,7 @@ export const forgotPasswordSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
-  newPassword: z.string().min(1, 'New password is required').min(6, 'Password must be at least 6 characters'),
+  newPassword: z.string().min(1, 'New password is required').pipe(passwordLengthSchema),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: 'Passwords do not match',
@@ -38,5 +40,4 @@ export type RegisterFormData = z.infer<typeof registerSchema>;
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export type ResendVerificationFormData = z.infer<typeof resendVerificationSchema>;
-
 

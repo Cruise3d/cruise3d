@@ -1,4 +1,5 @@
 import type { Product } from './types';
+import { getDefaultProductImage } from '../../lib/productImage';
 
 /**
  * Shape of the product as returned by the backend's `/products` endpoint.
@@ -46,9 +47,6 @@ interface BackendProduct {
   createdAt?: string;
 }
 
-const DEFAULT_IMAGE =
-  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80';
-
 function extractImageUrls(backend: BackendProduct): string[] {
   const urls: string[] = [];
   for (const img of backend.images ?? []) {
@@ -57,7 +55,7 @@ function extractImageUrls(backend: BackendProduct): string[] {
   if (backend.primaryImageUrl && !urls.includes(backend.primaryImageUrl)) {
     urls.unshift(backend.primaryImageUrl);
   }
-  if (urls.length === 0) urls.push(DEFAULT_IMAGE);
+  if (urls.length === 0) urls.push(getDefaultProductImage());
   return urls;
 }
 

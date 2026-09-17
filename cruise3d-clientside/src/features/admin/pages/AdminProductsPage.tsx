@@ -4,6 +4,7 @@ import ProductForm from '../components/ProductForm'
 import { deleteProduct, fetchAdminProducts, fetchProductById } from '../api'
 import type { AdminProduct } from '../types'
 import { theme } from '../../../styles/theme'
+import { getDefaultProductImage } from '../../../lib/productImage'
 
 function formatDate(dateString: string) {
   try {
@@ -192,7 +193,7 @@ export default function AdminProductsPage() {
                             style={{ backgroundColor: colors.surface.low }}
                           >
                             <img
-                              src={product.primaryImageUrl || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=200&q=80'}
+                              src={product.primaryImageUrl || getDefaultProductImage(200)}
                               alt={product.title}
                               className="h-full w-full object-cover"
                             />
