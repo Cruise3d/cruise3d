@@ -4,10 +4,13 @@ import { getCategoriesWithProducts } from '../api'
 import type { CategoryWithProducts } from '../types'
 import { ProductGrid } from '../../products/components/ProductGrid'
 import { normalizeProducts } from '../../products/normalizeProduct'
+import type { Product } from '../../products/types'
 import { theme } from '../../../styles/theme'
+import { useCartStore } from '../../cart/useCartStore'
 
 export default function CategoryCatalogPage() {
   const { colors } = theme
+  const addItem = useCartStore((state) => state.addItem)
   const [categories, setCategories] = useState<CategoryWithProducts[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -28,6 +31,10 @@ export default function CategoryCatalogPage() {
       cancelled = true
     }
   }, [])
+
+  const handleAddToCart = async (product: Product) => {
+    await addItem(product, 1, product.material)
+  }
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
@@ -68,7 +75,7 @@ export default function CategoryCatalogPage() {
                   View all
                 </Link>
               </div>
-              <ProductGrid products={products} />
+              <ProductGrid products={products} onAddToCart={handleAddToCart} />
             </section>
           )
         })}

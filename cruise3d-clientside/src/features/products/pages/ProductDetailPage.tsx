@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { getProductById, getProducts } from '../api';
 import { ProductGallery } from '../components/ProductGallery';
@@ -44,6 +44,8 @@ export default function ProductDetailPage() {
   const { colors, shadows } = theme;
   const { isAuthenticated, user } = useAuthStore();
   const isCustomer = isAuthenticated && user?.role === 'customer';
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -171,6 +173,11 @@ export default function ProductDetailPage() {
   }
 
   const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      navigate('/login', { replace: true, state: { from: location } });
+      return;
+    }
+
     const finishLabel = product.material ?? undefined;
     try {
       await addItem(product, quantity, finishLabel);

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import type { Product } from '../types';
 import { theme } from '../../../styles/theme';
 import { Button } from '../../../components/ui/Button';
 import { getDefaultProductImage } from '../../../lib/productImage';
+import { useAuthStore } from '../../../app/store/authStore';
 
 export interface ProductCardProps {
   product: Product;
@@ -19,6 +20,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const navigate = useNavigate();
+  const location = useLocation();
   const { colors, shadows } = theme;
 
   const primaryImage = product.images?.[0] ?? getDefaultProductImage();
@@ -161,6 +165,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           disabled={!product.inStock}
           onClick={(event) => {
             stopCardNav(event);
+            if (!isAuthenticated) {
+              navigate('/login', { replace: true, state: { from: location } });
+              return;
+            }
             if (onAddToCart) onAddToCart(product);
           }}
           className="w-full rounded-lg px-2 py-2.5 text-[11px] font-bold uppercase tracking-[0.08em] shadow-none sm:text-xs"

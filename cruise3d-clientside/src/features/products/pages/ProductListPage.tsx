@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { Product, ProductFilterState } from '../types';
 import { getProducts } from '../api';
 import { ProductGrid } from '../components/ProductGrid';
@@ -11,6 +11,7 @@ import { Modal } from '../../../components/ui/Modal';
 import { theme } from '../../../styles/theme';
 import { useCartStore } from '../../cart/useCartStore';
 import { getDefaultProductImage } from '../../../lib/productImage';
+import { useAuthStore } from '../../../app/store/authStore';
 
 function uniqueSorted(values: string[]): string[] {
   return Array.from(new Set(values.filter(Boolean))).sort((a, b) =>
@@ -21,6 +22,9 @@ function uniqueSorted(values: string[]): string[] {
 export default function ProductListPage() {
   const { colors, shadows } = theme;
   const addItem = useCartStore((state) => state.addItem);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const categoryId = searchParams.get('categoryId') ?? undefined;
 
@@ -152,6 +156,11 @@ export default function ProductListPage() {
   }, [filteredProducts, currentPage]);
 
   const handleAddToCart = async (product: Product) => {
+    if (!isAuthenticated) {
+      navigate('/login', { replace: true, state: { from: location } });
+      return;
+    }
+
     try {
       await addItem(product, 1, product.material);
       setCartSuccessMessage(`Added "${product.title}" to your cart.`);

@@ -7,6 +7,7 @@ import type { Category } from '../features/categories/types';
 import { Button } from '../components/ui/Button';
 import { theme } from '../styles/theme';
 import type { Product } from '../features/products/types';
+import { useCartStore } from '../features/cart/useCartStore';
 import printerWorkbench from '../assets/carousel/Gemini_Generated_Image_g1jgi5g1jgi5g1jg.png';
 import kineticForm from '../assets/carousel/Gemini_Generated_Image_g1jgi5g1jgi5g1jg (2).png';
 import referenceHero from '../assets/carousel/ChatGPT Image Sep 4, 2026, 04_02_15 PM.png';
@@ -101,6 +102,7 @@ const contactCards: ContactCard[] = [
 ];
 
 export default function HomePage() {
+  const addItem = useCartStore((state) => state.addItem);
   const [featured, setFeatured] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -153,6 +155,10 @@ export default function HomePage() {
   }, []);
 
   const { colors, shadows } = theme;
+
+  const handleAddToCart = async (product: Product) => {
+    await addItem(product, 1, product.material);
+  };
 
   return (
     <div className="overflow-hidden" style={{ backgroundColor: colors.background.page }}>
@@ -368,7 +374,11 @@ export default function HomePage() {
               Featured products will appear here once added from the admin page.
             </p>
           ) : (
-            <ProductGrid products={featured} compactDesktop />
+            <ProductGrid
+              products={featured}
+              onAddToCart={handleAddToCart}
+              compactDesktop
+            />
           )}
         </div>
       </section>
